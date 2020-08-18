@@ -22,14 +22,14 @@ print >> sys.stderr, "Comparing: %s and %s." % (fn1, fn2)
 pairs1 = set()
 data1 = dict()
 for row in csv.reader(open(fn1), delimiter=d1):
-    pairs1.add( (row[0], row[2]) )
-    data1[ (row[0], row[2]) ] = [row[1]] + row[3:]
+    pairs1.add((row[0], row[2]))
+    data1[(row[0], row[2])] = [row[1]] + row[3:]
 
 pairs2 = set()
 data2 = dict()
 for row in csv.reader(open(fn2), delimiter=d2):
-    pairs2.add( (row[0], row[2]) )
-    data2[ (row[0], row[2]) ] = [row[1]] + row[3:]
+    pairs2.add((row[0], row[2]))
+    data2[(row[0], row[2])] = [row[1]] + row[3:]
 
 print >> sys.stderr, "File 1 has %d pairs." % len(pairs1)
 print >> sys.stderr, "File 2 has %d pairs." % len(pairs2)

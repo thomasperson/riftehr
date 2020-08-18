@@ -42,15 +42,15 @@ ec_data = list()
 for mrn, fn, ln, phone, zipcode, rel in reader:
     fn = fn.strip().lower()
     ln = ln.strip().lower()
-    
+
     first_names = [fn]
     if fn.replace('-', ' ').find(' ') != -1:
         first_names += fn.replace('-',' ').split(' ')
-    
+
     last_names = [ln]
     if ln.replace('-', ' ').find(' ') != -1:
         last_names += ln.replace('-', ' ').split(' ')
-            
+
     for fn_comp in first_names:
         for ln_comp in last_names:
             ec_data.append([mrn, fn_comp, ln_comp, phone, zipcode, rel])
@@ -67,15 +67,15 @@ try:
     for i, (mrn, fn, ln, phone, zipcode) in enumerate(reader):
         fn = fn.strip().lower()
         ln = ln.strip().lower()
-    
+
         first_names = [fn]
         if fn.replace('-', ' ').find(' ') != -1:
             first_names += fn.replace('-',' ').split(' ')
-    
+
         last_names = [ln]
         if ln.replace('-', ' ').find(' ') != -1:
             last_names += ln.replace('-',' ').split(' ')
-    
+
         for fn_comp in first_names:
             for ln_comp in last_names:
                 pt_data.append([mrn, fn_comp, ln_comp, phone, zipcode])
@@ -83,7 +83,7 @@ except Exception as e:
     #print >> sys.stderr, "Failed with error: %s" % csv.Error
     print >> sys.stderr, "Failed in %s at line: %d with error: %s" % (pt_fn, i+2, e)
     sys.exit(20)
-    
+
 
 print >> sys.stderr, "Parsed %d entries for EC and %d entries for PT" % (len(ec_data), len(pt_data))
 
@@ -121,28 +121,28 @@ if end is None:
 
 ec_data_subet = ec_data[start:end]
 
-#relationship_results = list()
+# relationship_results = list()
 
 ofh = open(ma_fn, 'w')
 delim = '\t' if ma_fn.endswith('txt') else ','
 writer = csv.writer(ofh, delimiter=delim)
-#writer.writerow(['patient_mrn', 'relationship', 'matched_relation_mrn', 'matched_path'])
+# writer.writerow(['patient_mrn', 'relationship', 'matched_relation_mrn', 'matched_path'])
 
 for pt_mrn, ec_first, ec_last, ec_phone, ec_zip, relationship in tqdm(ec_data_subet):
-    
+
     # we match on each of the four datatypes: first name, last name, phone number, and zipcode
     # brute force approach
-    #first_matches = set([pt[0] for pt in pt_data if pt[1] == ec_first])
-    #last_matches = set([pt[0] for pt in pt_data if pt[2] == ec_last])
-    #phone_matches = set([pt[0] for pt in pt_data if pt[3] == ec_phone])
-    #zip_matches = set([pt[0] for pt in pt_data if pt[4] == ec_zip])
-    
+    # first_matches = set([pt[0] for pt in pt_data if pt[1] == ec_first])
+    # last_matches = set([pt[0] for pt in pt_data if pt[2] == ec_last])
+    # phone_matches = set([pt[0] for pt in pt_data if pt[3] == ec_phone])
+    # zip_matches = set([pt[0] for pt in pt_data if pt[4] == ec_zip])
+
     # hashing approach
     first_matches = set([pt[0] for pt in first_hash[ec_first[:num_char]] if pt[1] == ec_first])
     last_matches = set([pt[0] for pt in last_hash[ec_last[:num_char]] if pt[2] == ec_last])
     phone_matches = set([pt[0] for pt in phone_hash[ec_phone[:num_char]] if pt[3] == ec_phone])
     zip_matches = set([pt[0] for pt in zip_hash[ec_zip[:num_char]] if pt[4] == ec_zip])
-    
+
     # if any of these data types, on their own, produce only one mrn match, then we add it to a list
     matching_mrns = list()
     if len(first_matches) == 1:
@@ -153,7 +153,7 @@ for pt_mrn, ec_first, ec_last, ec_phone, ec_zip, relationship in tqdm(ec_data_su
         matching_mrns.extend([(mrn, 'phone') for mrn in phone_matches])
     if len(zip_matches) == 1:
         matching_mrns.extend([(mrn, 'zip') for mrn in zip_matches])
-    
+
     # now we try combinations of 2
     if len(first_matches & last_matches) == 1:
         matching_mrns.extend([(mrn, 'first,last') for mrn in (first_matches & last_matches)])
@@ -161,15 +161,15 @@ for pt_mrn, ec_first, ec_last, ec_phone, ec_zip, relationship in tqdm(ec_data_su
         matching_mrns.extend([(mrn, 'first,phone') for mrn in (first_matches & phone_matches)])
     if len(first_matches & zip_matches) == 1:
         matching_mrns.extend([(mrn, 'first,zip') for mrn in (first_matches & zip_matches)])
-    
+
     if len(last_matches & phone_matches) == 1:
         matching_mrns.extend([(mrn, 'last,phone') for mrn in (last_matches & phone_matches)])
     if len(last_matches & zip_matches) == 1:
         matching_mrns.extend([(mrn, 'last,zip') for mrn in (last_matches & zip_matches)])
-    
+
     if len(phone_matches & zip_matches) == 1:
         matching_mrns.extend([(mrn, 'phone,zip') for mrn in (phone_matches & zip_matches)])
-    
+
     # now combinations of 3
     if len(first_matches & last_matches & phone_matches) == 1:
         matching_mrns.extend([(mrn, 'first,last,phone') for mrn in (first_matches & last_matches & phone_matches)])
@@ -177,24 +177,22 @@ for pt_mrn, ec_first, ec_last, ec_phone, ec_zip, relationship in tqdm(ec_data_su
         matching_mrns.extend([(mrn, 'first,last,zip') for mrn in (first_matches & last_matches & zip_matches)])
     if len(first_matches & phone_matches & zip_matches) == 1:
         matching_mrns.extend([(mrn, 'first,phone,zip') for mrn in (first_matches & phone_matches & zip_matches)])
-    
+
     if len(last_matches & phone_matches & zip_matches) == 1:
         matching_mrns.extend([(mrn, 'last,phone,zip') for mrn in (last_matches & phone_matches & zip_matches)])
-    
+
     # finally the combination of all 4
     if len(first_matches & last_matches & phone_matches & zip_matches) == 1:
         matching_mrns.extend([(mrn, 'first,last,phone,zip') for mrn in (first_matches & last_matches & phone_matches & zip_matches)])
-        
+
     for matched_mrn, path in matching_mrns:
         #relationship_results.append([pt_mrn, relationship, matched_mrn, path])
         writer.writerow([pt_mrn, relationship, matched_mrn, path])
 
 # print >> sys.stderr, "Found %d EC -> PT matches, saving to file." % len(relationship_results)
 
-#writer.writerows(relationship_results)
+# writer.writerows(relationship_results)
 ofh.close()
-
-
 
 
 #####
@@ -202,12 +200,12 @@ ofh.close()
 ####
 
 # pre-sort the patient demographic data
-## NOTE: Despite my efforts, binary search is much slower. Not sure why so for now we are not using it. -NPT
-#mrns, firsts, lasts, phones, zips = zip(*pt_data)
-#firsts_sorted = sorted(zip(firsts, mrns))
-#lasts_sorted = sorted(zip(lasts, mrns))
-#phones_sorted = sorted(zip(phones, mrns))
-#zips_sorted = sorted(zip(zips, mrns))
+# NOTE: Despite my efforts, binary search is much slower. Not sure why so for now we are not using it. -NPT
+# mrns, firsts, lasts, phones, zips = zip(*pt_data)
+# firsts_sorted = sorted(zip(firsts, mrns))
+# lasts_sorted = sorted(zip(lasts, mrns))
+# phones_sorted = sorted(zip(phones, mrns))
+# zips_sorted = sorted(zip(zips, mrns))
 
 # def binary_search(a, x, start=0, end=-1):
 #     """ our own implementation of binary search, because, why not? """

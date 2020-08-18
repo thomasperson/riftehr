@@ -54,7 +54,7 @@ writer = csv.writer(ec_ofh, delimiter=delim)
 writer.writerow(['MRN_1', 'EC_FirstName', 'EC_LastName', 'EC_PhoneNumber', 'EC_Zipcode', 'EC_Relationship'])
 
 for mrn, fn_comp, ln_comp, phone, zipcode, rel in ec_data:
-        writer.writerow([mrn, fn_comp, ln_comp, phone, zipcode, rel])
+    writer.writerow([mrn, fn_comp, ln_comp, phone, zipcode, rel])
 
 ec_ofh.close()
 
@@ -72,7 +72,7 @@ current_ln = Set()
 current_phone = Set()
 current_zip = Set()
 
-#write processed pt_data
+# write processed pt_data
 pt_ofn = os.path.dirname(pt_fn) + '/pt_processed.csv'
 pt_ofh = open(pt_ofn, 'w')
 delim = '\t' if pt_ofn.endswith('txt') else ','

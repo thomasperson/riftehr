@@ -10,4 +10,3 @@ ofh = open(fh, 'w')
 writer = csv.writer(ofh)
 writer.writerows(data)
 ofh.close()
-
