@@ -33,15 +33,15 @@ ec_data = list()
 for mrn, fn, ln, phone, zipcode, rel in reader:
     fn = fn.strip().lower()
     ln = ln.strip().lower()
-    
+
     first_names = [fn]
     if fn.replace('-', ' ').find(' ') != -1:
         first_names += fn.replace('-',' ').split(' ')
-    
+
     last_names = [ln]
     if ln.replace('-', ' ').find(' ') != -1:
         last_names += ln.replace('-', ' ').split(' ')
-            
+
     for fn_comp in first_names:
         for ln_comp in last_names:
             ec_data.append([mrn, fn_comp, ln_comp, phone, zipcode, rel])
@@ -81,27 +81,27 @@ writer.writerow(['MRN', 'FirstName', 'LastName', 'PhoneNumber', 'Zipcode'])
 
 for mrn, fn, ln, phone, zipcode in reader:
     if mrn != current_mrn and current_mrn is not None:
-	for fn_comp in current_fn:
+    for fn_comp in current_fn:
             for ln_comp in current_ln:
-		for ph_comp in current_phone:
-		    for zip_comp in current_zip:
-			    writer.writerow([current_mrn, fn_comp, ln_comp, ph_comp, zip_comp])
+        for ph_comp in current_phone:
+            for zip_comp in current_zip:
+                writer.writerow([current_mrn, fn_comp, ln_comp, ph_comp, zip_comp])
 	current_fn.clear()
 	current_ln.clear()
 	current_phone.clear()
-	current_zip.clear()	
-				
+	current_zip.clear()
+
     fn = fn.strip().lower()
     ln = ln.strip().lower()
-    
+
     current_fn.add(fn)
     if fn.replace('-', ' ').find(' ') != -1:
       	current_fn.update(fn.replace('-',' ').split(' '))
-    
+
     current_ln.add(ln)
     if ln.replace('-', ' ').find(' ') != -1:
-        current_ln.update(ln.replace('-',' ').split(' '))	
-    
+        current_ln.update(ln.replace('-',' ').split(' '))
+
     current_phone.add(phone)
     current_zip.add(zipcode)
     current_mrn = mrn
@@ -111,10 +111,6 @@ if len(current_fn) != 0:
         for ln_comp in current_ln:
             for ph_comp in current_phone:
                 for zip_comp in current_zip:
-                    writer.writerow([current_mrn, fn_comp, ln_comp, ph_comp, zip_comp])	
- 
+                    writer.writerow([current_mrn, fn_comp, ln_comp, ph_comp, zip_comp])
+
 pt_ofh.close()
-
-
-
-
