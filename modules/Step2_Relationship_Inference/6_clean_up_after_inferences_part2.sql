@@ -19,7 +19,7 @@ set provided_relationship = 1;
 --- Add indexes
 
 
---- Identifying mrn = to relation_mrn (Self) <--- 0 cases! 
+--- Identifying mrn = to relation_mrn (Self) <--- 0 cases!
 select*
 from actual_and_inf_rel_part2_unique_clean
 where mrn = relation_mrn;
@@ -27,7 +27,7 @@ where mrn = relation_mrn;
 
 --- Create new column conflicting_provided_relationship at actual_and_inf_rel_part2_unique_clean
 
-### Tagging conflicting provided relationships
+---### Tagging conflicting provided relationships
 update actual_and_inf_rel_part2_unique_clean a
 join provided_relationships_conflicting b on (a.mrn = b. mrn) and (a.relation_mrn = b.relation_mrn)
 set conflicting_provided_relationship = 1
@@ -60,7 +60,7 @@ SET a.relationship_specific = 'Aunt'
 where a.relationship = 'Aunt/Uncle' and c.relationship_name = "Aunt" and a.provided_relationship = 1 and a.conflicting_provided_relationship is NULL and a.relationship_specific is NULL;
 
 
---- Identifying all "Parent" that are = MOTHER by gender 
+--- Identifying all "Parent" that are = MOTHER by gender
 
 update actual_and_inf_rel_part2_unique_clean x
 join (
@@ -74,15 +74,15 @@ join database.pt_demog b on (a.relation_mrn = b.mrn)
 where a.relationship = "Parent" and a.relationship_specific is NULL
 ) c
 group by c.relation_mrn
-having count(c.relation_mrn) =1 
+having count(c.relation_mrn) =1
 ) d
 join database.pt_demog e on d.relation_mrn = e.mrn
 where e.SEX = 'F'
 )y on x.relation_mrn = y.relation_mrn
-SET x.relationship_specific = 'Mother' 
+SET x.relationship_specific = 'Mother'
 where x.relationship = "Parent" and x.relationship_specific is NULL;
 
---- Identifying all "Parent" that are = FATHER by gender 
+--- Identifying all "Parent" that are = FATHER by gender
 
 update actual_and_inf_rel_part2_unique_clean x
 join (
@@ -96,15 +96,15 @@ join database.pt_demog b on (a.relation_mrn = b.mrn)
 where a.relationship = "Parent" and a.relationship_specific is NULL
 ) c
 group by c.relation_mrn
-having count(c.relation_mrn) =1 
+having count(c.relation_mrn) =1
 ) d
 join database.pt_demog e on d.relation_mrn = e.mrn
 where e.SEX = 'M'
 )y on x.relation_mrn = y.relation_mrn
-SET x.relationship_specific = 'Father' 
+SET x.relationship_specific = 'Father'
 where x.relationship = "Parent" and x.relationship_specific is NULL;
 
---- Identifying all "Aunt/Uncle" that are = Aunt by gender 
+--- Identifying all "Aunt/Uncle" that are = Aunt by gender
 
 update actual_and_inf_rel_part2_unique_clean x
 join (
@@ -118,15 +118,15 @@ join database.pt_demog b on (a.relation_mrn = b.mrn)
 where a.relationship = "Aunt/Uncle" and a.relationship_specific is NULL
 ) c
 group by c.relation_mrn
-having count(c.relation_mrn) =1 
+having count(c.relation_mrn) =1
 ) d
 join database.pt_demog e on d.relation_mrn = e.mrn
 where e.SEX = 'F'
 )y on x.relation_mrn = y.relation_mrn
-SET x.relationship_specific = 'Aunt' 
+SET x.relationship_specific = 'Aunt'
 where x.relationship = "Aunt/Uncle" and x.relationship_specific is NULL;
 
---- Identifying all "Aunt/Uncle" that are = Uncle by gender 
+--- Identifying all "Aunt/Uncle" that are = Uncle by gender
 
 update actual_and_inf_rel_part2_unique_clean x
 join (
@@ -140,12 +140,12 @@ join database.pt_demog b on (a.relation_mrn = b.mrn)
 where a.relationship = "Aunt/Uncle" and a.relationship_specific is NULL
 ) c
 group by c.relation_mrn
-having count(c.relation_mrn) =1 
+having count(c.relation_mrn) =1
 ) d
 join database.pt_demog e on d.relation_mrn = e.mrn
 where e.SEX = 'M'
 )y on x.relation_mrn = y.relation_mrn
-SET x.relationship_specific = 'Uncle' 
+SET x.relationship_specific = 'Uncle'
 where x.relationship = "Aunt/Uncle" and x.relationship_specific is NULL;
 
 
@@ -173,7 +173,7 @@ from actual_and_inf_rel_part2_unique_clean a
 join delete_part2_parent_aunt_uncle_cases b on (a.mrn = b.mrn) and (a.relation_mrn = b.relation_mrn) and (a.relationship = b.relationship);
 
 
---- Removing Child/Nephew/Niece from pairs that have Child or Nephew/Niece or both 
+--- Removing Child/Nephew/Niece from pairs that have Child or Nephew/Niece or both
 create table delete_part2_child_nephew_niece_cases
 select b.mrn, b.relation_mrn, c.relationship
 from(
@@ -220,7 +220,7 @@ delete a
 from actual_and_inf_rel_part2_unique_clean a
 join delete_part2_sibling_cousin_cases b on (a.mrn = b.mrn) and (a.relation_mrn = b.relation_mrn) and (a.relationship = b.relationship);
 
---- Removing Parent/Parent-in-law from pairs that have Parent 
+--- Removing Parent/Parent-in-law from pairs that have Parent
 create table delete_part2_parent_in_law_cases
 select b.mrn, b.relation_mrn, c.relationship
 from(
@@ -263,7 +263,7 @@ where c.relationship like 'Child/Child%'
 delete a
 from actual_and_inf_rel_part2_unique_clean a
 join delete_part2_child_in_law_cases b on (a.mrn = b.mrn) and (a.relation_mrn = b.relation_mrn) and (a.relationship = b.relationship);
- 
+
 
 --- Removing Grandaunt/Granduncle/Grandaunt-in-law/Granduncle-in-law from pairs that have Grandaunt/Granduncle
 create table delete_part2_grandaunt_in_law_cases
@@ -457,7 +457,7 @@ from actual_and_inf_rel_part2_unique_clean a
 join delete_part2_sibling_in_law_cases b on (a.mrn = b.mrn) and (a.relation_mrn = b.relation_mrn) and (a.relationship = b.relationship);
 
 
---- Creating final table 
+--- Creating final table
 create table database.ACTUAL_AND_INF_REL_CLEAN_FINAL
 select distinct mrn, relationship, relation_mrn, provided_relationship, conflicting_provided_relationship, relationship_specific
 from actual_and_inf_rel_part2_unique_clean

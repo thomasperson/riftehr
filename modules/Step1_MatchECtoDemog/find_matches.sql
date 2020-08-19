@@ -12,7 +12,7 @@ group by a.FirstName;
 create table x_fn_unique (primary key(FirstName))
 select distinct a.MRN, a.`FirstName`
 from `x_pt_processed` a
-join x_fn_cnt b on a.`FirstName` = b.`FirstName` 
+join   b on a.`FirstName` = b.`FirstName`
 where b.cnt = 1 ;
 
 create table x_fn_matched
@@ -27,6 +27,9 @@ update x_fn_matched
 set matched_path = 'first';
 
 drop table `x_fn_distint`, `x_fn_cnt`, `x_fn_unique`;
+
+
+
 
 ---map LastName
 create table x_ln_distint
@@ -376,7 +379,7 @@ set matched_path = 'first,phone,zip';
 
 drop table `x_fn_ph_zip_distint`, `x_fn_ph_zip_cnt`, `x_fn_ph_zip_unique`;
 
-#map LastName,Phone,Zipcode
+---#map LastName,Phone,Zipcode
 create table x_ln_ph_zip_distint
 select distinct MRN, LastName, PhoneNumber, `Zipcode`
 from `x_pt_processed`;
