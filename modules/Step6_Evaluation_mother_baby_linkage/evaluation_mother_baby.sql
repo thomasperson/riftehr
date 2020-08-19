@@ -11,12 +11,12 @@ from
 	from database.ACTUAL_AND_INF_REL_CLEAN_FINAL
 	join database.mother_child_linkage on (mrn = child_mrn and relation_mrn = mother_mrn)
 	where relationship_specific = 'Mother'
-) tp 
+) tp
 join
 (
 	# False Positives (FP)
 	select sum(mismatch) as fp
-	from 
+	from
 	(
 		select mrn, sum(mother_mrn = relation_mrn) = 0 as mismatch
 		from database.ACTUAL_AND_INF_REL_CLEAN_FINAL
@@ -24,7 +24,7 @@ join
 		where relationship_specific = 'Mother'
 		group by mrn
 	) a
-) fp 
+) fp
 join
 (
 	# False Negatives (FN)
@@ -57,7 +57,7 @@ from
 		group by mrn, relation_mrn
 	) a
 	group by npath
-) tp 
+) tp
 join
 (
 	# False Positives (FP)
@@ -65,13 +65,13 @@ join
 	from
 	(
 		select mrn, npath, sum(mother_mrn = relation_mrn) = 0 as mismatch
-		from 
+		from
 		(
 			select mrn, relation_mrn, count(distinct matched_path) npath
 			from database.ACTUAL_AND_INF_REL_CLEAN_FINAL_w_matched_path
 			where relationship_specific = 'Mother'
 			group by mrn, relation_mrn
-		) a 
+		) a
 		join database.mother_child_linkage on (mrn = child_mrn)
 		group by mrn
 	) b
@@ -81,7 +81,7 @@ order by ppv desc;
 
 
 
---- Calculate TP, FP, FN, sensitivity and PPV by path for mother 
+--- Calculate TP, FP, FN, sensitivity and PPV by path for mother
 select *, tp/(tp+fn) as sensitivity, tp/(tp+fp) as ppv
 from
 (
@@ -91,12 +91,12 @@ from
 	join database.mother_child_linkage on (mrn = child_mrn and relation_mrn = mother_mrn)
 	where relationship_specific = 'Mother'
 	group by matched_path
-) tp 
+) tp
 join
 (
 	# False Positives (FP)
 	select matched_path, sum(mismatch) as fp
-	from 
+	from
 	(
 		select mrn, matched_path, sum(mother_mrn = relation_mrn) = 0 as mismatch
 		from database.ACTUAL_AND_INF_REL_CLEAN_FINAL_w_matched_path

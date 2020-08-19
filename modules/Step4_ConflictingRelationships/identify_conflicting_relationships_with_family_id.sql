@@ -1,4 +1,4 @@
-### Identify conflicting relationships
+---### Identify conflicting relationships
 create table ACTUAL_AND_INF_REL_CLEAN_FINAL_count_rels
 select family_id, mrn, relation_mrn, count(distinct relationship) as num_uniq_rels
 from family_IDs

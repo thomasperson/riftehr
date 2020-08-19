@@ -1,4 +1,4 @@
-### Create table to identify families
+---### Create table to identify families
 create table all_relationships_to_generate_family_id
 select mrn, relationship, relation_mrn
 from ACTUAL_AND_INF_REL_CLEAN_FINAL
