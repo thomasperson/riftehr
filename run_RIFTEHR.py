@@ -203,7 +203,7 @@ def parse_arguments():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--run_example', action='store_false', default=True,
+    parser.add_argument('--run_example', action='store_true', default=False,
                         dest='example',
                         help='Runs on Example Files')
 
