@@ -7,3 +7,5 @@ http://riftehr.tatonettilab.org
 ---
 Remember to always respect patient privacy.
 
+
+Run example files with `python run_RIFTER.py --run_example`
