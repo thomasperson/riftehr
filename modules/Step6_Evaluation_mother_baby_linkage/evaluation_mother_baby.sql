@@ -41,8 +41,8 @@ select distinct a.mrn, a.relationship, a.relation_mrn, a.relationship_specific, 
 from ACTUAL_AND_INF_REL_CLEAN_FINAL a
 join relations_matched_clean b on (a.mrn = b.mrn and a.relationship = b.relationship and a.relation_mrn = b.matched_relation_mrn);
 
-## Based on number of distinct paths
-# False Negatives (FN) - zero since there is no match, zero paths therefore we are calculationg only PPV
+---## Based on number of distinct paths
+---# False Negatives (FN) - zero since there is no match, zero paths therefore we are calculationg only PPV
 select *, tp/(tp+fp) as ppv
 from
 (
