@@ -6,7 +6,7 @@ Data: relationships AND opposites
 Export as csv with lines terminated by '/r'
 
 Run: julia 3_Infer_Relationships.jl
- 
+
 =#
 
 # define the matches dictionary
@@ -26,7 +26,7 @@ for ln in lines
 
 	row = split(ln, ',')
 	#print(row[1])
-	
+
 	if haskey(matches_dict, row[1])
 		push!(matches_dict[row[1]], (row[2], row[3], 0))
 	else
@@ -40,7 +40,7 @@ function contains(test_relationship, test_mrn, pair_to_compare)
 	for w in 1:length(pair_to_compare)
 		if test_relationship == pair_to_compare[w][1]
 			if test_mrn == pair_to_compare[w][2]
-				return true 
+				return true
 			end
 		end #if
 	end
@@ -53,7 +53,7 @@ x = deepcopy(matches_dict)
 b = 0
 while true
 	a = 0
-	f = 0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+	f = 0
 	x2 = x
 	b += 1
 	#print(b)
@@ -74,7 +74,7 @@ while true
 			#print("\t")
 			#print(haskey(x, j[2]))
 			#print("\t")
-			if haskey(x, j[2]) #tries to find the empi from the pair as key 
+			if haskey(x, j[2]) #tries to find the empi from the pair as key
 				#print(a)
 				#print("\t")
 				#print(j[1])
@@ -84,13 +84,13 @@ while true
 					#print(j[1])
 					#print("\t")
 
-					
+
 					if z[2] == i
 						# we won't infer relationships from the individual to themselves
 						continue
 					end
-					
-					
+
+
 					if j[1] == "Parent"
 						if z[1] == "Sibling"
 							if contains("Aunt/Uncle", z[2], x[i]) == false
@@ -103,7 +103,7 @@ while true
 							if contains("Grandaunt/Granduncle", z[2], x[i]) == false
 								push!(x2[i], ("Grandaunt/Granduncle", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Child"
 							if contains("Sibling", z[2], x[i]) == false
 								push!(x2[i], ("Sibling", z[2], b))
@@ -132,7 +132,7 @@ while true
 							end
 						end
 					end
-				
+
 					if j[1] == "Child"
 						if z[1] == "Aunt/Uncle"
 							if contains("Sibling/Sibling-in-law", z[2], x[i]) == false
@@ -143,7 +143,7 @@ while true
 							if contains("Grandchild", z[2], x[i]) == false
 								push!(x2[i], ("Grandchild", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Grandchild"
 							if contains("Great-grandchild", z[2], x[i]) == false
 								push!(x2[i], ("Great-grandchild", z[2], b))
@@ -171,7 +171,7 @@ while true
 							end
 						end
 					end
-						
+
 					if j[1] == "Sibling"
 						if z[1] == "Aunt/Uncle"
 							if contains("Aunt/Uncle", z[2], x[i]) == false
@@ -182,7 +182,7 @@ while true
 							if contains("Nephew/Niece", z[2], x[i]) == false
 								push!(x2[i], ("Nephew/Niece", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Grandchild"
 							if contains("Grandnephew/Grandniece", z[2], x[i]) == false
 								push!(x2[i], ("Grandnephew/Grandniece", z[2], b))
@@ -211,7 +211,7 @@ while true
 							end
 						end
 					end
-							
+
 					if j[1] == "Aunt/Uncle"
 						if z[1] == "Aunt/Uncle"
 							if contains("Grandaunt/Granduncle/Grandaunt-in-law/Granduncle-in-law", z[2], x[i]) == false
@@ -222,7 +222,7 @@ while true
 							if contains("Cousin", z[2], x[i]) == false
 								push!(x2[i], ("Cousin", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Grandchild"
 							if contains("First cousin once removed", z[2], x[i]) == false
 								push!(x2[i], ("First cousin once removed", z[2], b))
@@ -250,7 +250,7 @@ while true
 							end
 						end
 					end
-								
+
 					if j[1] == "Grandchild"
 						if z[1] == "Aunt/Uncle"
 							if contains("Child/Child-in-law", z[2], x[i]) == false
@@ -261,7 +261,7 @@ while true
 							if contains("Great-grandchild", z[2], x[i]) == false
 								push!(x2[i], ("Great-grandchild", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Grandchild"
 							if contains("Great-great-grandchild", z[2], x[i]) == false
 								push!(x2[i], ("Great-great-grandchild", z[2], b))
@@ -289,7 +289,7 @@ while true
 							end
 						end
 					end
-									
+
 					if j[1] == "Grandparent"
 						if z[1] == "Aunt/Uncle"
 							if contains("Great-grandaunt/Great-granduncle", z[2], x[i]) == false
@@ -300,7 +300,7 @@ while true
 							if contains("Parent/Aunt/Uncle", z[2], x[i]) == false
 								push!(x2[i], ("Parent/Aunt/Uncle", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Grandchild"
 							if contains("Sibling/Cousin", z[2], x[i]) == false
 								push!(x2[i], ("Sibling/Cousin", z[2], b))
@@ -328,8 +328,8 @@ while true
 							end
 						end
 					end
-					
-					
+
+
 					if j[1] == "Nephew/Niece"
 						if z[1] == "Aunt/Uncle"
 							if contains("Sibling/Sibling-in-law", z[2], x[i]) == false
@@ -340,7 +340,7 @@ while true
 							if contains("Grandnephew/Grandniece", z[2], x[i]) == false
 								push!(x2[i], ("Grandnephew/Grandniece", z[2], b))
 								a += 1
-							end	
+							end
 						elseif z[1] == "Grandchild"
 							if contains("Great-grandnephew/Great-grandniece", z[2], x[i]) == false
 								push!(x2[i], ("Great-grandnephew/Great-grandniece", z[2], b))
@@ -367,10 +367,10 @@ while true
 								a += 1
 							end
 						end
-					end					
+					end
 				end
 			end # if haskey(x, j[2])
-		end # for j in x[i]	
+		end # for j in x[i]
 	#print("A is:", a)
 	#print("\n")
 	end

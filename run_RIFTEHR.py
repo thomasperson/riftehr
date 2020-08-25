@@ -11,7 +11,13 @@ __credits__ = ["Fernanda Polubriaginof", "Thomas N. Person", "Katie LaRow, ",
 
 def load_references():
     """Loads reference files from /reference_files into dictionary lookup
-    tables for use running pipeline"""
+    tables for use running pipeline
+
+    Returns:
+        group_opposite: Dictionary linking various abbreviations and spellings
+                        to standardized terms
+        rel_abbrev_group: Distionary for flipping relationships.
+    """
 
     group_opposite = dict()
     rel_abbrev_group = dict()
@@ -33,6 +39,19 @@ def load_references():
 
 
 def merge_matches_demog(df_cumc_patient, dg_df):
+    """Merges demographic data with match data.
+
+    Args:
+        df_cumc_patient (df): Pandas Dataframe of Matches
+        dg_df (df): Pandas Dataframe of Demographic data
+
+    Returns:
+        df_cumc_patient: Pandas Dataframe of Matches and Demographic Data
+
+    Todo:
+        Validate and Standardize Sex data.
+    """
+
 
     # a.mrn, b.relationship_group, a.relation_mrn, a.matched_path, child.year as DOB_empi, parent.year as DOB_matched, child.year - parent.year as age_dif, null as exclude
 
@@ -46,7 +65,7 @@ def merge_matches_demog(df_cumc_patient, dg_df):
     df_cumc_patient['DOB_empi'] = pd.to_numeric(df_cumc_patient['DOB_empi'], downcast="float")
     df_cumc_patient['DOB_matched'] = pd.to_numeric(df_cumc_patient['DOB_matched'], downcast="float")
 
-    # exclude cases with year of birth <1900
+    # exclude anything with year of birth <1900
     df_cumc_patient = df_cumc_patient[~(df_cumc_patient['DOB_empi'] <= 1900)]
     df_cumc_patient = df_cumc_patient[~(df_cumc_patient['DOB_matched'] <= 1900)]
 
@@ -55,8 +74,21 @@ def merge_matches_demog(df_cumc_patient, dg_df):
     return df_cumc_patient
 
 
-def match_cleanup(df, group_opposite):
-    """Cleans up Matches before infering relationship."""
+def match_cleanup(df, group_opposite, high_match):
+    """Cleans up Matches before infering relationship.  Dropping improbably
+    matches and flipping probable but possible incorect relationships
+
+    Args:
+        df (df): Pandas Dataframe of Matches and Demographic data
+        group_opposite: Dictionary linking Pandas Dataframe of Demographic data
+        high_match: (int) Cuttoff for to filter high matches with too
+
+    Returns:
+        df: Cleaned Pandas Dataframe of Matches and Demographic Data
+
+    Todo:
+        Exclude patients with conflicting year of birth
+    """
 
     # exclude PARENTS with age difference BETWEEN -10 AND 10 years
     indexNames = df[(df['relationship_group'] == 'Parent') & (df['age_dif'] < 10) & (df['age_dif'] > -10)].index
@@ -75,36 +107,27 @@ def match_cleanup(df, group_opposite):
     df.drop(indexNames, inplace=True)
 
     # flip PARENTS with age difference <-10
-    df['relationship_group'] = df[(df['relationship_group'] == 'Parent') & (df['age_dif'] < -10)]['relationship_group'].map(group_opposite)
-
+    df_sub_p = df[(df['relationship_group'] == 'Parent') & (df['age_dif'] < -10)]
     # flip CHILD with age difference >10
-    df['relationship_group'] = df[(df['relationship_group'] == 'Child') & (df['age_dif'] > 10)]['relationship_group'].map(group_opposite)
-
+    df_sub_c = df[(df['relationship_group'] == 'Child') & (df['age_dif'] > 10)]
     # flip GRANDPARENTS with age difference <-20
-    df['relationship_group'] = df[(df['relationship_group'] == 'Grandparent') & (df['age_dif'] < -20)]['relationship_group'].map(group_opposite)
-
+    df_sub_gp = df[(df['relationship_group'] == 'Grandparent') & (df['age_dif'] < -20)]
     # flip GRANDCHILD with age difference >20
-    df['relationship_group'] = df[(df['relationship_group'] == 'Grandchild') & (df['age_dif'] > 20)]['relationship_group'].map(group_opposite)
+    df_sub_gc = df[(df['relationship_group'] == 'Grandchild') & (df['age_dif'] > 20)]
 
+    # merge sub and flip and recombine
+    df_sub_concat = pd.concat([df_sub_p, df_sub_c, df_sub_gp, df_sub_gc])
+    df_sub_concat['relationship_group'] = df_sub_concat['relationship_group'].map(group_opposite)
+    df.loc[df_sub_concat.index, :] = df_sub_concat
 
+    # Remove High matches
+    df = df[df.groupby(['relation_empi_or_mrn'])['empi_or_mrn'].transform('nunique') <= high_match]
+    df = df[df.groupby(['empi_or_mrn'])['relation_empi_or_mrn'].transform('nunique') <= high_match]
 
-    # a.mrn, b.relationship_group, a.relation_mrn, a.matched_path, child.year as DOB_empi, parent.year as DOB_matched, child.year - parent.year as age_dif, null as exclude
+    df = df[['empi_or_mrn','relationship_group','relation_empi_or_mrn']]
+    df.columns = ['empi_or_mrn', 'relationship', 'relation_empi_or_mrn']
 
-
-
-
-    # Drop high matches (run last)
-    # df_cumc_patient_sub = df_cumc_patient[df_cumc_patient['relationship'] != 'Spouse']
-    # df_cumc_patient_spouses = df_cumc_patient[df_cumc_patient['relationship'] == 'Spouse']
-    # df_cumc_patient_sub = df_cumc_patient_sub[df_cumc_patient_sub.groupby(['relationship'])['empi_or_mrn'].transform('nunique') < 20]
-    # df_cumc_patient = pd.concat([df_cumc_patient_sub, df_cumc_patient_spouses ], ignore_index=True)
-    # print(df_cumc_patient_sub)
-
-
-
-    pass
-
-    return df
+    return df.drop_duplicates()
 
 
 def find_matches(pt_df, ec_df):
@@ -358,6 +381,11 @@ def parse_arguments():
                         type=str,
                         help='Output Directory for temp files and results')
 
+    parser.add_argument('--high_match', action='store', default=20,
+                        dest='high_match',
+                        type=int,
+                        help='Output Directory for temp files and results')
+
     args = parser.parse_args()
     if args.example is False and (args.pt_file is None or args.pt_file is None
                         or args.dg_file is None or args.out_dir is None):
@@ -391,7 +419,7 @@ def main():
     dg_df = pd.read_csv(cli_args.dg_file, sep='\t', dtype=str)
     df_cumc_patient_wdg = merge_matches_demog(df_cumc_patient, dg_df)
     df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tmp.tsv', sep='\t', index=False)
-    df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite)
+    df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite, cli_args.high_match)
     df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.csv', sep=',', index=False)
 
     pass
