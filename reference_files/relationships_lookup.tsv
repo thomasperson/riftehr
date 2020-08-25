@@ -34,5 +34,5 @@ Grandfather	Grandparent	Grandparent	Grandchild
 Grandmother	Grandparent	Grandparent	Grandchild
 Son	Child	Child	Parent
 Daughter	Child	Child	Parent
-SPO	Spouce	Spouse	Spouse
+SPO	Spouse	Spouse	Spouse
 Spouse	Spouse	Spouse	Spouse
