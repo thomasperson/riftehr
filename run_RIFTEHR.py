@@ -120,7 +120,7 @@ def find_matches(pt_df, ec_df):
         df_cumc_patient: Pandas Dataframe of Matches
 
     Todo:
-        Also match on all piences of split first and last name.  Just does
+        Also match on all pieces of split first and last name.  Just does
         full string match now
     """
 
@@ -302,8 +302,7 @@ def normalize_load(pt_file, ec_file, rel_abbrev_group):
         list: list containing two pandas dataframes of cleaned data
 
     Todo:
-        Validate PhoneNumber, ZipCode and MRN format.  Do duplicate entrys need
-        to be removed?  Should be handled before analysis.
+        Validate PhoneNumber, ZipCode and MRN format.
 
     """
 
@@ -386,13 +385,14 @@ def main():
     # Step 1: Load and Match PT to EC
     pt_df, ec_df = normalize_load(cli_args.pt_file, cli_args.ec_file, rel_abbrev_group)
     df_cumc_patient = find_matches(pt_df, ec_df)
-    df_cumc_patient.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient.tsv', sep='\t', index=False)
+    df_cumc_patient.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient.tmp.tsv', sep='\t', index=False)
 
     # Step 2: Clean Matches and Relationship Inference
     dg_df = pd.read_csv(cli_args.dg_file, sep='\t', dtype=str)
     df_cumc_patient_wdg = merge_matches_demog(df_cumc_patient, dg_df)
-    df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tsv', sep='\t', index=False)
-    match_cleanup(df_cumc_patient_wdg, group_opposite)
+    df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tmp.tsv', sep='\t', index=False)
+    df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite)
+    df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.csv', sep=',', index=False)
 
     pass
 
