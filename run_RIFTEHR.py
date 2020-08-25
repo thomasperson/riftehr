@@ -384,7 +384,7 @@ def parse_arguments():
     parser.add_argument('--high_match', action='store', default=20,
                         dest='high_match',
                         type=int,
-                        help='Output Directory for temp files and results')
+                        help='Maximum number of matches for a emergency contact or Paitent')
 
     args = parser.parse_args()
     if args.example is False and (args.pt_file is None or args.pt_file is None
