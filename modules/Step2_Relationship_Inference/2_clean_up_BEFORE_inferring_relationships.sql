@@ -1,6 +1,6 @@
 ---###Flip and clean up step
 
-# Create table to be updated
+---# Create table to be updated
 create table database.relations_matched_mrn_with_age_dif
 select distinct a.mrn, b.relationship_group, a.relation_mrn, a.matched_path, child.year as DOB_empi, parent.year as DOB_matched, child.year - parent.year as age_dif, null as exclude
 from database.pt_matches a
@@ -28,15 +28,15 @@ update database.relations_matched_mrn_with_age_dif a
 join (
 select distinct t1.mrn, t1.relation_mrn, count(t1.age_dif) as cnt
 from (
-select distinct mrn, relation_mrn, age_dif
-from relations_matched_mrn_with_age_dif
-group by mrn, relation_mrn, age_dif
-) t1
+    select distinct mrn, relation_mrn, age_dif
+    from relations_matched_mrn_with_age_dif
+    group by mrn, relation_mrn, age_dif
+    ) t1
 group by t1.mrn, t1.relation_mrn
 having cnt >1
 ) b
-on a.mrn = b.mrn and a.relation_mrn = b.relation_mrn
-set a.exclude ="1";
+    on a.mrn = b.mrn and a.relation_mrn = b.relation_mrn
+    set a.exclude ="1";
 ;
 
 
