@@ -10,16 +10,18 @@ Run: julia 3_Infer_Relationships.jl
 =#
 
 # define the matches dictionary
-matches_dict = Dict{ASCIIString,Array{Tuple{ASCIIString, ASCIIString, Int64}}}()
+matches_dict = Dict{String,Array{Tuple{String, String, Int64}}}()
 
 fh = open("patient_relations_w_opposites_clean.csv", "r")
-rel_text = readall(fh)
+#rel_text = readall(fh)
 
-lines = split(rel_text, '\r')
+#lines = split(rel_text, '\r')
+
+lines = readlines(fh)
 
 i = 0
 for ln in lines
-	i += 1
+	global i += 1
 	if i == 1
 		continue
 	end
@@ -55,7 +57,7 @@ while true
 	a = 0
 	f = 0
 	x2 = x
-	b += 1
+	global b += 1
 	#print(b)
 	for i in keys(x) ###i is the key of the dictionary (EMPI)
 		f += 1
@@ -376,7 +378,7 @@ while true
 	end
 	print("A2 is:", a)
 	print("\n")
-	x = x2
+	global x = x2
 	if a == 0
 		break
 	end
