@@ -1,5 +1,6 @@
 import os, sys
 import argparse
+import copy
 import pandas as pd
 
 __author__ = "Thomas Nate Person"
@@ -7,6 +8,282 @@ __email__ = "thomas.n.person@gmail.com"
 __license__ = "MIT"
 __credits__ = ["Fernanda Polubriaginof", "Thomas N. Person", "Katie LaRow, ",
                "Nicholas P. Tatonetti"]
+
+
+def clean_inferences_part1(matches_dict):
+
+
+
+    return
+
+def infer_relations_part1(file_location, in_file_name, out_file_name):
+    """Infers relations through already found relations.  \
+
+    Args:
+        file_location (str): Location of temp files
+        in_file_name (str): Name of input file with relations
+        out_file_name (str): Name of file to output infered relations to
+
+    Returns:
+        match_dict: Dictionary containtaining actual and infered matches
+
+    """
+    matches_dict = dict()
+
+    infile = open(file_location + os.sep + in_file_name, 'rt')
+    outfile = open(file_location + os.sep + out_file_name, 'wt')
+
+    for i, line in enumerate(infile):
+        if i == 0:
+            outfile.write(line)
+            continue
+        fields = line.strip().split("\t")
+        if fields[0] in matches_dict:
+            matches_dict[fields[0]].add(tuple([fields[1].strip(), fields[2].strip()]))
+        else:
+            someSet = set()
+            someSet.add(tuple([fields[1].strip(), fields[2].strip()]))
+            matches_dict[fields[0]] = someSet
+    infile.close()
+
+    # NOTE!!  JULIA STARTS ARRAYS AT 1!!!!
+    a = 1
+    while a > 0:  # while because we are going to loop till no more updates are found.
+        a = 0  # break while variable
+        for empi_key, or_emp_rel in matches_dict.items():
+            emp_rel = or_emp_rel.copy()
+            # for i in keys(x) ###i is the key of the dictionary (EMPI)
+            for match in or_emp_rel:   ### j are the pairs of relationships associated with the empi i
+                if match[1] in matches_dict:    # tries to find the empi from the pair as key
+                    for match_rel in matches_dict[match[1]]:    # z are the relationships from the empi that was found as a key
+                        if empi_key == match_rel[1]:      # we won't infer relationships from the individual to themselves
+                            continue
+
+
+                        if match[0] == "Parent":
+                            # The Siblings of a Parent are Aunts/Uncles
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Aunt/Uncle", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Aunt/Uncle", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Grandaunt/Granduncle", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandaunt/Granduncle", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Sibling", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["Child/Nephew/Niece", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Child/Nephew/Niece", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Great-grandparent", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandparent", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["Cousin", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Cousin", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Grandparent", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandparent", match_rel[1]]))
+                                    a += 1
+
+                        elif match[0] == "Child":
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Child", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Child", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Sibling/Sibling-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling/Sibling-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Grandchild", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandchild", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["Great-grandchild", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandchild", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Parent/Parent-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Parent/Parent-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["Grandchild/Grandchild-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandchild/Grandchild-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Spouse", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Spouse", match_rel[1]]))
+                                    a += 1
+
+                        elif match[0] == "Sibling":
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Sibling", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Aunt/Uncl", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Aunt/Uncl", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Nephew/Niece", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Nephew/Niece", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["Grandnephew/Grandniece", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandnephew/Grandniece", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Grandparent", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandparent", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["Child/Nephew/Niece", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Child/Nephew/Niece", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Parent", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Parent", match_rel[1]]))
+                                    a += 1
+
+                        elif match[0] == "Aunt/Uncle":
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Parent/Aunt/Uncle", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Parent/Aunt/Uncle", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Grandaunt/Granduncle/Grandaunt-in-law/Granduncle-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandaunt/Granduncle/Grandaunt-in-law/Granduncle-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Cousin", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Cousin", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["First cousin once removed", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["First cousin once removed", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Great-grandparent/Great-grandparent-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandparent/Great-grandparent-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["Sibling/Cousin", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling/Cousin", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Grandparent/Grandparent-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandparent/Grandparent-in-law", match_rel[1]]))
+                                    a += 1
+
+                        elif match[0] == "Grandchild":
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Grandchild", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandchild", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Child/Child-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Child/Child-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Great-grandchild", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandchild", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["Great-great-grandchild", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-great-grandchild", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Spouse", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Spouse", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["Great-grandchild/Great-grandchild-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandchild/Great-grandchild-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Child/Child-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Child/Child-in-law", match_rel[1]]))
+                                    a += 1
+
+                        elif match[0] == "Grandparent":
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Grandaunt/Granduncle", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandaunt/Granduncle", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Great-grandaunt/Great-granduncle", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandaunt/Great-granduncle", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Parent/Aunt/Uncle", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Parent/Aunt/Uncle", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["Sibling/Cousin", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling/Cousin", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Great-great-grandparent", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-great-grandparent", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["First cousin once removed", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["First cousin once removed", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Great-grandparent", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandparent", match_rel[1]]))
+                                    a += 1
+
+                        elif match[0] == "Nephew/Niece":
+                            if match_rel[0] == "Sibling":
+                                if tuple(["Nephew/Niece/Nephew-in-law/Niece-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Nephew/Niece/Nephew-in-law/Niece-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Aunt/Uncle":
+                                if tuple(["Sibling/Sibling-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling/Sibling-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Child":
+                                if tuple(["Grandnephew/Grandniece", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandnephew/Grandniece", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandchild":
+                                if tuple(["Great-grandnephew/Great-grandniece", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Great-grandnephew/Great-grandniece", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Grandparent":
+                                if tuple(["Parent/Parent-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Parent/Parent-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Nephew/Niece":
+                                if tuple(["Grandnephew/Grandniece/Grandnephew-in-law/Grandniece-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Grandnephew/Grandniece/Grandnephew-in-law/Grandniece-in-law", match_rel[1]]))
+                                    a += 1
+                            elif match_rel[0] == "Parent":
+                                if tuple(["Sibling/Sibling-in-law", match_rel[1]]) not in emp_rel:
+                                    emp_rel.add(tuple(["Sibling/Sibling-in-law", match_rel[1]]))
+                                    a += 1
+
+            matches_dict[empi_key]=emp_rel
+        if a == 0:
+            break
+
+    for ptid,match_rel in matches_dict.items():
+        for x in match_rel:
+            if ptid == x[-1]:
+                continue
+            outfile.write(ptid+"\t")
+            outfile.write("\t".join(x))
+            outfile.write("\n")
+    outfile.close()
+    return matches_dict
 
 
 def load_references():
@@ -81,14 +358,14 @@ def match_cleanup(df, group_opposite, high_match):
     Args:
         df (df): Pandas Dataframe of Matches and Demographic data
         group_opposite: Dictionary linking Pandas Dataframe of Demographic data
-        high_match: (int) Cuttoff for to filter high matches with too
+        high_match: (int) Cuttoff to filter high number of matches too
 
     Returns:
         df: Cleaned Pandas Dataframe of Matches and Demographic Data
 
-    Todo:
-        Exclude patients with conflicting year of birth
     """
+
+    # Duplicates dropped in load step.
 
     # exclude PARENTS with age difference BETWEEN -10 AND 10 years
     indexNames = df[(df['relationship_group'] == 'Parent') & (df['age_dif'] < 10) & (df['age_dif'] > -10)].index
@@ -332,6 +609,14 @@ def normalize_load(pt_file, ec_file, rel_abbrev_group):
     pt_df = pd.read_csv(pt_file, sep='\t', dtype=str)
     ec_df = pd.read_csv(ec_file, sep='\t', dtype=str)
 
+    # Drop duplicate rows
+    pt_df = pt_df.drop_duplicates()
+    ec_df = ec_df.drop_duplicates()
+
+    # Drop duplicate records by MRN.
+    pt_df = pt_df.drop_duplicates(subset=['MRN'], keep=False)
+    ec_df = ec_df.drop_duplicates(subset=['MRN_1'], keep=False)
+
     # Clean up PT info
     pt_df['FirstName'] = pt_df['FirstName'].apply(clean_split_names)
     pt_df['LastName'] = pt_df['LastName'].apply(clean_split_names)
@@ -417,10 +702,14 @@ def main():
 
     # Step 2: Clean Matches and Relationship Inference
     dg_df = pd.read_csv(cli_args.dg_file, sep='\t', dtype=str)
+    dg_df = dg_df.drop_duplicates()
+    dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
+
     df_cumc_patient_wdg = merge_matches_demog(df_cumc_patient, dg_df)
     df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tmp.tsv', sep='\t', index=False)
     df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite, cli_args.high_match)
-    df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.csv', sep=',', index=False)
+    df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.tsv', sep='\t', index=False)
+    infer_relations_part1(cli_args.out_dir, "patient_relations_w_opposites_clean.tsv","output_actual_and_inferred_relationships.tsv")
 
     pass
 

@@ -52,39 +52,21 @@ end
 
 x = deepcopy(matches_dict)
 #print(x)
-b = 0
+b = 0   #loop count
 while true
-	a = 0
-	f = 0
-	x2 = x
-	global b += 1
+	a = 0   #break while variable
+	f = 0   # not used
+	x2 = x  # 3rd copy
+	global b += 1   #not used in next step
 	#print(b)
 	for i in keys(x) ###i is the key of the dictionary (EMPI)
 		f += 1
-		#print(i)
-		#print("\t")
-		#print(f)
-		#print(" of ")
-		#print(length(x))
-		#print("\n")
-		#print("i is", i)
-		#print("\t")
-		#print(a)
-		#print("\n")
+
 		for j in x[i] ### j are the pairs of relationships associated with the empi i
-			#print(j)
-			#print("\t")
-			#print(haskey(x, j[2]))
-			#print("\t")
+
 			if haskey(x, j[2]) #tries to find the empi from the pair as key
-				#print(a)
-				#print("\t")
-				#print(j[1])
+
 				for z in x[j[2]] #z are the relationships from the empi that was found as a key
-					#print(z)
-					#print("\t")
-					#print(j[1])
-					#print("\t")
 
 
 					if z[2] == i
@@ -226,7 +208,7 @@ while true
 								a += 1
 							end
 						elseif z[1] == "Grandchild"
-							if contains("First cousin once removed", z[2], x[i]) == false
+							if contains("First cousin once removed", z[2], x[i]) 3 bwq== false
 								push!(x2[i], ("First cousin once removed", z[2], b))
 								a += 1
 							end

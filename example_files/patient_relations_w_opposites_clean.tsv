@@ -1,0 +1,14 @@
+empi_or_mrn	relationship	relation_empi_or_mrn
+11	Child	1
+1	Spouse	2
+5	Parent	2
+2	Child	3
+6	Spouse	3
+3	Sibling	4
+4	Sibling	5
+7	Child	6
+9	Sibling	6
+8	Spouse	7
+10	Aunt/Uncle	7
+17	Grandparent	11
+21	Child	22
