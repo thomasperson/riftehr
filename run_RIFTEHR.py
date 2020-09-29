@@ -10,14 +10,133 @@ __credits__ = ["Fernanda Polubriaginof", "Thomas N. Person", "Katie LaRow, ",
                "Nicholas P. Tatonetti"]
 
 
-def clean_inferences_part1(matches_dict):
+def get_specific_relation(pt_id, relation, dg_dict):
+    """Convertes general relation to specific
+
+    Args:
+        pt_id (str): PT_ID to look up
+        relation (str): General relation to convert
+        dg_dict (dict): Dictionary of pt demographics
+
+    Returns:
+        specific_relation: Converted Specific Relation
+
+    """
+    specific_relation = ""
+    if relation == "Parent":
+        if dg_dict[pt_id] == "F":
+            specific_relation = "Mother"
+        else:
+            specific_relation = "Father"
+    elif relation == "Aunt/Uncle":
+        if dg_dict[pt_id] == "F":
+            specific_relation = "Aunt"
+        else:
+            specific_relation = "Uncle"
+    return specific_relation
 
 
+def clean_inferences(file_location, matches_dict, out_file_name):
+    """Cleans up infered relationships, and writes the relatiohship linkedlist to a temp file
 
-    return
+    Args:
+        file_location (str): Location of temp files
+        matches_dict (dict): Dictionary of provided and infered relationships
+        out_file_name (str): Out file name
 
-def infer_relations_part1(file_location, in_file_name, out_file_name):
-    """Infers relations through already found relations.  \
+    Returns:
+        cleaned_matched_list: Cleaned Dictionary Link list of actual and
+                              infered relations
+
+    """
+
+    # Conflicting provided relationships removed at data import step
+
+    match_linked_list = dict()
+
+    for pt_id, og_matches in matches_dict.items():
+        if tuple([pt_id, og_matches[1]]) in match_linked_list:
+            match_linked_list[tuple([pt_id, og_matches[1]])].add(og_matches[0])
+        else:
+            someSet = set()
+            someSet.add(og_matches[0])
+            match_linked_list[tuple([pt_id, og_matches[1]])] = someSet
+
+    cleaned_matched_list = dict()
+
+    for match, og_relations in match_linked_list.items():
+        if len(relations)>1:
+            if 'Parent/Parent-in-law' in og_relations:
+                if 'Parent' in relations:
+                    cleaned_matched_list[match] = 'Parent'
+
+            elif 'Parent/Aunt/Uncle' in og_relations:
+                if 'Parent' in relations:
+                    match_linked_list[match] = 'Parent'
+                elif 'Aunt/Uncle' in relations:
+                    cleaned_matched_list[match] = 'Aunt/Uncle'
+
+            elif 'Sibling/Sibling-in-law' in og_relations:
+                if 'Sibling' in relations:
+                    cleaned_matched_list[match] = 'Sibling'
+
+            elif 'Sibling/Cousin' in og_relations:
+                if 'Sibling' in relations:
+                    cleaned_matched_list[match] = 'Sibling'
+                elif 'Cousin' in relations:
+                    cleaned_matched_list[match] = 'Cousin'
+
+            elif 'Child/Nephew/Niece' in og_relations:
+                if 'Child' in relations:
+                    cleaned_matched_list[match] = 'Child'
+                elif 'Nephew/Niece' in relations:
+                    cleaned_matched_list[match] = 'Nephew/Niece'
+
+            elif 'Child/Child-in-law' in og_relations:
+                if 'Child' in relations:
+                    cleaned_matched_list[match] = 'Child'
+
+            elif 'Nephew/Niece/Nephew-in-law/Niece-in-law' in og_relations:
+                if 'Nephew/Niece' in relations:
+                    cleaned_matched_list[match] = 'Nephew/Niece'
+
+            elif 'Grandparent/Grandparent-in-law' in og_relations:
+                if 'Grandparent' in relations:
+                    cleaned_matched_list[match] = 'Grandparent'
+
+            elif 'Grandchild/Grandchild-in-law' in og_relations:
+                if 'Grandchild' in relations:
+                    cleaned_matched_list[match] = 'Grandchild'
+
+            elif 'Grandnephew/Grandniece/Grandnephew-in-law/Grandniece-in-law' in og_relations:
+                if 'Grandnephew/Grandniece' in relations:
+                    cleaned_matched_list[match] = 'Grandnephew/Grandniece'
+
+            elif 'Grandaunt/Granduncle/Grandaunt-in-law/Granduncle-in-law' in og_relations:
+                if 'Grandaunt/Granduncle' in relations:
+                    cleaned_matched_list[match] = 'Grandaunt/Granduncle'
+
+            elif 'Great-grandparent/Great-grandparent-in-law' in og_relations:
+                if 'Great-grandparent' in relations:
+                    cleaned_matched_list[match] = 'Great-grandparent'
+
+            elif 'Great-grandchild/Great-grandchild-in-law' in og_relations:
+                if 'Great-grandchild' in relations:
+                    cleaned_matched_list[match] = 'Great-grandchild'
+        else:
+            cleaned_matched_list[match] = og_relations.pop()
+
+    outfile = open(file_location + os.sep + out_file_name, 'wt')
+
+    for match, relation in cleaned_matched_list.items():
+        outfile.write(match[0] + "\t" + relation + "\t" + match[1] + "\n")
+    outfile.close()
+
+    return cleaned_matched_list
+
+
+def infer_relations(file_location, in_file_name, out_file_name):
+    """Infers relations through already found relations.
 
     Args:
         file_location (str): Location of temp files
@@ -38,12 +157,14 @@ def infer_relations_part1(file_location, in_file_name, out_file_name):
             outfile.write(line)
             continue
         fields = line.strip().split("\t")
-        if fields[0] in matches_dict:
-            matches_dict[fields[0]].add(tuple([fields[1].strip(), fields[2].strip()]))
+        if fields[0].strip() == fields[2].strip():
+            continue
+        if fields[0].strip() in matches_dict:
+            matches_dict[fields[0].strip()].add(tuple([fields[1].strip(), fields[2].strip()]))
         else:
             someSet = set()
             someSet.add(tuple([fields[1].strip(), fields[2].strip()]))
-            matches_dict[fields[0]] = someSet
+            matches_dict[fields[0].strip()] = someSet
     infile.close()
 
     # NOTE!!  JULIA STARTS ARRAYS AT 1!!!!
@@ -283,6 +404,7 @@ def infer_relations_part1(file_location, in_file_name, out_file_name):
             outfile.write("\t".join(x))
             outfile.write("\n")
     outfile.close()
+
     return matches_dict
 
 
@@ -365,7 +487,7 @@ def match_cleanup(df, group_opposite, high_match):
 
     """
 
-    # Duplicates dropped in load step.
+    # Conflicting ages dropped in import step
 
     # exclude PARENTS with age difference BETWEEN -10 AND 10 years
     indexNames = df[(df['relationship_group'] == 'Parent') & (df['age_dif'] < 10) & (df['age_dif'] > -10)].index
@@ -705,13 +827,30 @@ def main():
     dg_df = dg_df.drop_duplicates()
     dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
 
+    dg_dict = dict()
+
+    for index, row in dg_df:
+        dg_dict[row['MRN']] = row['Sex']
+
+
     df_cumc_patient_wdg = merge_matches_demog(df_cumc_patient, dg_df)
     df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tmp.tsv', sep='\t', index=False)
     df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite, cli_args.high_match)
     df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.tsv', sep='\t', index=False)
-    infer_relations_part1(cli_args.out_dir, "patient_relations_w_opposites_clean.tsv","output_actual_and_inferred_relationships.tsv")
 
-    pass
+    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_opposites_clean.tsv","output_actual_and_inferred_relationships.tsv")
+    clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered1.tsv")
+
+    cleaned_matched_link_list = dict()
+
+    # Lets run it a few time.
+    for i in range(2,4):
+        matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered"+str(i-1)+".tsv","output_actual_and_inferred_relationships"+str(i)+".tsv")
+        cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered"+str(i)+".tsv")
+
+
+
+
 
     return
 
