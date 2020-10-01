@@ -2,12 +2,16 @@ import os, sys
 import argparse
 import copy
 import pandas as pd
+import networkx as nx
 
 __author__ = "Thomas Nate Person"
 __email__ = "thomas.n.person@gmail.com"
 __license__ = "MIT"
-__credits__ = ["Fernanda Polubriaginof", "Thomas N. Person", "Katie LaRow, ",
+__credits__ = ["Fernanda Polubriaginof", "Thomas Nate Person", "Katie LaRow, ",
                "Nicholas P. Tatonetti"]
+
+"""
+"""
 
 
 def get_specific_relation(pt_id, relation, dg_dict):
@@ -33,11 +37,23 @@ def get_specific_relation(pt_id, relation, dg_dict):
             specific_relation = "Aunt"
         else:
             specific_relation = "Uncle"
+    elif relation == 'Nephew/Niece':
+        if dg_dict[pt_id] == "F":
+            specific_relation = "Niece"
+        else:
+            specific_relation = "Nephew"
+    elif relation == 'Grandnephew/Grandniece':
+        if dg_dict[pt_id] == "F":
+            specific_relation = "Grandniece"
+        else:
+            specific_relation = "Grandnephew"
+
     return specific_relation
 
 
 def clean_inferences(file_location, matches_dict, out_file_name):
-    """Cleans up infered relationships, and writes the relatiohship linkedlist to a temp file
+    """Cleans up infered relationships, and writes the relatiohship linklist
+        to a temp file
 
     Args:
         file_location (str): Location of temp files
@@ -530,13 +546,13 @@ def match_cleanup(df, group_opposite, high_match):
 
 
 def find_matches(pt_df, ec_df):
-    """Finds uniques paitents and emergency contact matches based off of first
+    """Finds uniques patients and emergency contact matches based off of first
     name, last name, phone number, zip code combinations.  Only matches on
     atleast two fields considered.
 
     Args:
         ec_df (df): Pandas Dataframe of Emergency Contact Information
-        pt_df (df): Pandas Dataframe of Paitent Informationb
+        pt_df (df): Pandas Dataframe of Patient Informationb
 
     Returns:
         df_cumc_patient: Pandas Dataframe of Matches
@@ -713,11 +729,11 @@ def normalize_phone_num(a_str):
 
 
 def normalize_load(pt_file, ec_file, rel_abbrev_group):
-    """Normalizes names from the Emergency Contact and Paitent data and loads
+    """Normalizes names from the Emergency Contact and Patient data and loads
     it into pandas data frame.
 
     Args:
-        pt_file (str): Location of the tab seperated Paitent data file
+        pt_file (str): Location of the tab seperated Patient data file
         ec_file (str): Location of the tab seperated Emergency Contact file
 
     Returns:
@@ -771,7 +787,7 @@ def parse_arguments():
     parser.add_argument('--pt_file', action='store',
                         dest='pt_file',
                         type=str,
-                        help='Tab seperated file of Paitent data')
+                        help='Tab seperated file of Patient data')
 
     parser.add_argument('--ec_file', action='store',
                         dest='ec_file',
@@ -781,7 +797,7 @@ def parse_arguments():
     parser.add_argument('--dg_file', action='store',
                         dest='dg_file',
                         type=str,
-                        help='Tab seperated file of Paitent Demographic Data')
+                        help='Tab seperated file of Patient Demographic Data')
 
     parser.add_argument('--out_dir', action='store',
                         dest='out_dir',
@@ -791,7 +807,7 @@ def parse_arguments():
     parser.add_argument('--high_match', action='store', default=20,
                         dest='high_match',
                         type=int,
-                        help='Maximum number of matches for a emergency contact or Paitent')
+                        help='Maximum number of matches for a emergency contact or Patient')
 
     args = parser.parse_args()
     if args.example is False and (args.pt_file is None or args.pt_file is None
