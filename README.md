@@ -14,16 +14,19 @@ Three input files are required.  A tab seperated paitent file, a tab seperated f
 Paitent file format:
 
 | MRN | FirstName | LastName | PhoneNumber | Zipcode |
+| --- | --- | --- | --- | --- |
 | 1 | Stephen | Taylor | 111-111-1111 | 22182 |
 
 Paitent emergency contact format:
 
 | MRN_1 | EC_FirstName | EC_LastName | EC_PhoneNumber | EC_Zipcode | EC_Relationship |
+| --- | --- | --- | --- | --- | --- |
 | 1 | Katherine | Taylor | 222-222-2222 | 22182 | SPO |
 
 Paitent demographic format:
 
 | MRN | BirthYear | Sex |
+| --- | --- | --- |
 | 1 | 1960 | M |
 
 Toy example files can also be found in the `example_files` directory.
