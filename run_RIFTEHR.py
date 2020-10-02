@@ -809,6 +809,11 @@ def parse_arguments():
                         type=int,
                         help='Maximum number of matches for a emergency contact or Patient')
 
+    parser.add_argument('--mc_link', action='store',
+                        dest='mc_link',
+                        type=str,
+                        help='Mother/Child link extracted from EHR records.  Used as TP for calulating accuracy of imputed data and integration into families')
+
     args = parser.parse_args()
     if args.example is False and (args.pt_file is None or args.pt_file is None
                         or args.dg_file is None or args.out_dir is None):

@@ -17,11 +17,15 @@ Paitent file format:
 | --- | --- | --- | --- | --- |
 | 1 | Stephen | Taylor | 111-111-1111 | 22182 |
 
+Should only be one record per MRN, any duplicates will be dropped.
+
 Paitent emergency contact format:
 
 | MRN_1 | EC_FirstName | EC_LastName | EC_PhoneNumber | EC_Zipcode | EC_Relationship |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Katherine | Taylor | 222-222-2222 | 22182 | SPO |
+
+MRN_1 in the emergency contact file should corrispond to the MRN in the Paitent file as the Emergency Contact information for that paitent.  A single MRN can have multiple Emergency Contacts.  Any EC relationship types not found in the `reference_files` will be dropped.
 
 Paitent demographic format:
 
@@ -29,7 +33,17 @@ Paitent demographic format:
 | --- | --- | --- |
 | 1 | 1960 | M |
 
-Toy example files can also be found in the `example_files` directory.
+The MRN in the Paitent demographic file should corrispond to the MRN in the Paitent file.  Should only be one record per MRN, any duplicates will be dropped.
+
+Mother Child Linkage:
+
+| MRN_Child | MRN_Mother | BirthYear |
+| --- | --- | --- |
+| 21 | 22 | 2008 |
+
+Toy example files can also be found in the `example_files` directory. Relationship abbreviation information can be found in the `reference_files` directory.
+
+
 
 
 
