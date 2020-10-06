@@ -814,6 +814,11 @@ def parse_arguments():
                         type=str,
                         help='Mother/Child link extracted from EHR records.  Used as TP for calulating accuracy of imputed data and integration into families')
 
+    parser.add_argument('--of_link', action='store',
+                        dest='of_link',
+                        type=str,
+                        help='Other Familial linkcages captured in the EHR for integration into families')
+
     args = parser.parse_args()
     if args.example is False and (args.pt_file is None or args.pt_file is None
                         or args.dg_file is None or args.out_dir is None):
@@ -832,6 +837,8 @@ def main():
         cli_args.pt_file = "example_files" + os.sep + "pt_file.tsv"
         cli_args.ec_file = "example_files" + os.sep + "ec_file.tsv"
         cli_args.dg_file = "example_files" + os.sep + "pt_demog.tsv"
+        cli_args.mc_link = "example_files" + os.sep + "mc_link.tsv"
+        cli_args.of_link = "example_files" + os.sep + "of_link.tsv"
         cli_args.out_dir = "example_files"
 
     print(cli_args)
