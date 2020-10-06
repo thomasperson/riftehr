@@ -2,13 +2,11 @@
 
 Relationship Inference From The EHR (RIFTEHR) is an automated algorithm for identifying relatedness between patients in an institution's Electronic Health Records.
 
-http://riftehr.tatonettilab.org
-
 Remember to always respect patient privacy.
 
 ---
 
-This is a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr .  Original implemention can be found under the `modules` directory along with a README for how to run them.
+This is a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr orgianlly developed by http://riftehr.tatonettilab.org  Original implemention can also be found in this repo under the `modules` directory along with a README for how to run them.
 
 Three input files are required.  A tab seperated paitent file(`pt_file.tsv`), a tab seperated emergency contact file (`ec_file.tsv`) the paitents, and a tab seperated file containing the paitent demographic data(`pt_demog.tsv`).  A fourth optional file is tab serparated Mother/Child data (`mc_file.tsv`) that will be used as TP data for some statistical analysis of imputed relationships and will be integrated into the family calulation
 
@@ -42,12 +40,12 @@ The MRN in the Paitent demographic file should corrispond to the MRN in the Pait
 | --- | --- | --- |
 | 21 | 22 | 2008 |
 
-Toy example files can also be found in the `example_files` directory. Relationship abbreviation information can be found in the `reference_files` directory.
+Toy example files can also be found in the `example_files` directory. Relationship abbreviation information, relationship groups, and their oposites can be found in the `reference_files` directory.
 
 
 
-
-
+---
+# Running RIFTEHR
 
 Run example files with `python run_RIFTEHR.py --run_example`
 
