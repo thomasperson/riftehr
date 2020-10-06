@@ -1,6 +1,6 @@
 # RIFTEHR
 
-Relationship Inference From The EHR (RIFTEHR) is an automated algorithm for identifying relatedness between patients in an institution's Electronic Health Records.
+Relationship Inference From The EHR (RIFTEHR) is an automated algorithm for identifying relatedness between patients in an institution's Electronic Health Records based off of  Emergency Contact information.
 
 Remember to always respect patient privacy.
 
@@ -56,7 +56,7 @@ The Mother Child Linkage is established in the delivery room and is the most acc
 | --- | --- |  --- |
 | 21 | Father | 25 |
 
-Other self reported family relations are often captured in an EHR.  These links ill also be integrated into the families generated from the Emergency Contact Information.
+Other self reported family relations are often captured in an EHR.  These links will also be integrated into the families generated from the Emergency Contact Information.
 
 
 
