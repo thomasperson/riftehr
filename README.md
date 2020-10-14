@@ -8,11 +8,11 @@ Remember to always respect patient privacy.
 
 This is a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr orgianlly developed by http://riftehr.tatonettilab.org  Original implemention can also be found in this repo under the `modules` directory along with a README for how to run them.
 
-Three input files are required.  A tab seperated paitent file(`pt_file.tsv`), a tab seperated emergency contact file (`ec_file.tsv`) the paitents, and a tab seperated file containing the paitent demographic data(`pt_demog.tsv`).  A fourth optional file is tab serparated Mother/Child data (`mc_file.tsv`) that will be used as TP data for some statistical analysis of imputed relationships and will be integrated into the familys.  A final fith option file (`of_file.tsv`) is a tab serperated file of other family linkages that may be captured in an EHR system.  Toy example files can also be found in the `example_files` directory. Relationship abbreviation information, relationship groups, and their oposites can be found in the `reference_files` directory.
+Three input files are required.  A tab seperated patient file(`pt_file.tsv`), a tab seperated emergency contact file (`ec_file.tsv`) the patients, and a tab seperated file containing the patient demographic data(`pt_demog.tsv`).  A fourth optional file is tab serparated Mother/Child data (`mc_file.tsv`) that will be used as TP data for some statistical analysis of imputed relationships and will be integrated into the familys.  A final fith option file (`of_file.tsv`) is a tab serperated file of other family linkages that may be captured in an EHR system.  Toy example files can also be found in the `example_files` directory. Relationship abbreviation information, relationship groups, and their oposites can be found in the `reference_files` directory.
 
 # Input files:
 
-## Paitent file:
+## Patient file:
 
 | MRN | FirstName | LastName | PhoneNumber | Zipcode |
 | --- | --- | --- | --- | --- |
@@ -22,23 +22,23 @@ Should only be one record per MRN, any duplicates will be dropped.
 
 
 
-## Paitent emergency contact:
+## Patient emergency contact:
 
 | MRN_1 | EC_FirstName | EC_LastName | EC_PhoneNumber | EC_Zipcode | EC_Relationship |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Katherine | Taylor | 222-222-2222 | 22182 | SPO |
 
-MRN_1 in the emergency contact file should corrispond to the MRN in the Paitent file as the Emergency Contact information for that paitent.  A single MRN can have multiple Emergency Contacts.  Any EC relationship types not found in the `reference_files` will be dropped.
+MRN_1 in the emergency contact file should corrispond to the MRN in the Patient file as the Emergency Contact information for that patient.  A single MRN can have multiple Emergency Contacts.  Any EC relationship types not found in the `reference_files` will be dropped.
 
 
 
-## Paitent demographic:
+## Patient demographic:
 
 | MRN | BirthYear | Sex |
 | --- | --- | --- |
 | 1 | 1960 | M |
 
-The MRN in the Paitent demographic file should corrispond to the MRN in the Paitent file.  Should only be one record per MRN, any duplicates will be dropped.
+The MRN in the Patient demographic file should corrispond to the MRN in the Patient file.  Should only be one record per MRN, any duplicates will be dropped.
 
 
 
@@ -70,8 +70,8 @@ Other self reported family relations are often captured in an EHR.  These links 
 
 Run example files with `python run_RIFTEHR.py --run_example`
 
-Input files must be tab seperated.  Run on paitent data with the command:
+Input files must be tab seperated.  Run on patient data with the command:
 
- `python run_RIFTEHR.py --pt_file my_paitent_file.tsv --ec_file my_emergency_contact_file.tsv --dg_file my_pt_demographic_file.tsv --mc_link mc_file.tsv --out_dir output_directory`
+ `python run_RIFTEHR.py --pt_file my_patient_file.tsv --ec_file my_emergency_contact_file.tsv --dg_file my_pt_demographic_file.tsv --mc_link mc_file.tsv --out_dir output_directory`
 
  Run `python run_RIFTEHR.py -h` to view all options

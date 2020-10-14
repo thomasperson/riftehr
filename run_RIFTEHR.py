@@ -3,6 +3,9 @@ import argparse
 import copy
 import pandas as pd
 import networkx as nx
+import cchardet as chardet
+import unidecode
+
 
 __author__ = "Thomas Nate Person"
 __email__ = "thomas.n.person@gmail.com"
@@ -11,7 +14,90 @@ __credits__ = ["Fernanda Polubriaginof", "Thomas Nate Person", "Katie LaRow, ",
                "Nicholas P. Tatonetti"]
 
 """
+
 """
+
+
+def fix_sex(a_str):
+    n_str = a_str.strip().upper()[:1]
+    return n_str
+
+
+def find_encoding(fname):
+    r_file = open(fname, 'rb').read()
+    result = chardet.detect(r_file)
+    charenc = result['encoding']
+    return charenc
+
+
+def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_link_list, dg_dict, rel_abbrev_group, ec_df):
+
+    of_link = dict()
+    mc_link = dict()
+
+    mc_link_test = dict()
+    imput_link_test = dict()
+
+    if of_file is not None:
+        infile = open(of_file, 'rt')
+        for line in infile:
+            if line.strip() == "" or "mrn" in line.lower():
+                continue
+            fields = line.strip().split("\t")
+            relation = fields[1].strip().lower()
+            if relation in rel_abbrev_group:
+                of_link[tuple([fields[0].strip(), fields[-1].strip()])] = rel_abbrev_group[relation]
+        infile.close()
+
+    bad_count = 0
+
+    if mc_file is not None:
+        infile = open(mc_file, 'rt')
+        for line in infile:
+            if line.strip() == "" or "mrn" in line.lower():
+                continue
+            fields = line.strip().split("\t")
+
+            # For stats, not considering links not determinable from ec data
+            if fields[0].strip() in ec_df['MRN_1'].values and fields[-1].strip() in ec_df['MRN_1'].values:
+                mc_link_test[tuple([fields[0].strip(), fields[-1].strip()])] = "Child"
+            elif fields[0].strip() not in ec_df['MRN_1'].values and fields[-1].strip() not in ec_df['MRN_1'].values:
+                bad_count += 1
+                print(fields[0].strip())
+            mc_link[tuple([fields[0].strip(), fields[-1].strip()])] = "Child"
+            if tuple([fields[0].strip(), fields[-1].strip()]) in cleaned_matched_link_list:
+                imput_link_test[tuple([fields[0].strip(), fields[-1].strip()])] = cleaned_matched_link_list[tuple([fields[0].strip(), fields[-1].strip()])]
+        infile.close()
+
+    print("Maximum Number of Mother/Child TP tested:\t"+str(len(mc_link_test)))
+    print("Maximum Number of imputed Mother/Child TP tested:\t"+str(len(imput_link_test)))
+    print(imput_link_test)
+
+    TP_count = 0
+    FP_count = 0
+    FN_count = len(mc_link_test) - len(imput_link_test)
+    # No TN_count possible
+
+    for match, relation in imput_link_test.items():
+        if relation == 'Child':
+            TP_count += 1
+        else:
+            FP_count += 1
+
+    outfile = open(file_location + os.sep + "QC_stats.tsv", 'wt')
+    outfile.write("MC_TP_Links_Tested\t"+str(len(mc_link_test))+"\n")
+    outfile.write("MC_Links_Imputed\t"+str(len(imput_link_test))+"\n")
+    outfile.write("TP_count\t"+str(TP_count)+"\n")
+    outfile.write("FP_count\t"+str(FP_count)+"\n")
+    outfile.write("FN_count\t"+str(FN_count)+"\n")
+    outfile.write("sensitivity\t"+str(TP_count/(TP_count+FN_count))+"\n")
+    outfile.write("ppv\t"+str(TP_count/(TP_count+FP_count))+"\n")
+    outfile.close()
+
+    cleaned_matched_link_list.update(of_link)
+    cleaned_matched_link_list.update(mc_link)
+
+    return cleaned_matched_link_list
 
 
 def get_specific_relation(pt_id, relation, dg_dict):
@@ -71,76 +157,87 @@ def clean_inferences(file_location, matches_dict, out_file_name):
     match_linked_list = dict()
 
     for pt_id, og_matches in matches_dict.items():
-        if tuple([pt_id, og_matches[1]]) in match_linked_list:
-            match_linked_list[tuple([pt_id, og_matches[1]])].add(og_matches[0])
-        else:
-            someSet = set()
-            someSet.add(og_matches[0])
-            match_linked_list[tuple([pt_id, og_matches[1]])] = someSet
+        for g in og_matches:
+            if tuple([pt_id, g[1]]) in match_linked_list.keys():
+                match_linked_list[tuple([pt_id, g[1]])].add(g[0])
+            else:
+                someSet = set()
+                someSet.add(g[0])
+                match_linked_list[tuple([pt_id, g[1]])] = someSet
 
     cleaned_matched_list = dict()
 
     for match, og_relations in match_linked_list.items():
-        if len(relations)>1:
+        if len(og_relations) > 1:
             if 'Parent/Parent-in-law' in og_relations:
-                if 'Parent' in relations:
+                if 'Parent' in og_relations:
                     cleaned_matched_list[match] = 'Parent'
 
             elif 'Parent/Aunt/Uncle' in og_relations:
-                if 'Parent' in relations:
+                if 'Parent' in og_relations:
                     match_linked_list[match] = 'Parent'
-                elif 'Aunt/Uncle' in relations:
+                elif 'Aunt/Uncle' in og_relations:
                     cleaned_matched_list[match] = 'Aunt/Uncle'
 
             elif 'Sibling/Sibling-in-law' in og_relations:
-                if 'Sibling' in relations:
+                if 'Sibling' in og_relations:
                     cleaned_matched_list[match] = 'Sibling'
 
             elif 'Sibling/Cousin' in og_relations:
-                if 'Sibling' in relations:
+                if 'Sibling' in og_relations:
                     cleaned_matched_list[match] = 'Sibling'
-                elif 'Cousin' in relations:
+                elif 'Cousin' in og_relations:
                     cleaned_matched_list[match] = 'Cousin'
 
             elif 'Child/Nephew/Niece' in og_relations:
-                if 'Child' in relations:
+                if 'Child' in og_relations:
                     cleaned_matched_list[match] = 'Child'
-                elif 'Nephew/Niece' in relations:
+                elif 'Nephew/Niece' in og_relations:
                     cleaned_matched_list[match] = 'Nephew/Niece'
 
             elif 'Child/Child-in-law' in og_relations:
-                if 'Child' in relations:
+                if 'Child' in og_relations:
                     cleaned_matched_list[match] = 'Child'
 
             elif 'Nephew/Niece/Nephew-in-law/Niece-in-law' in og_relations:
-                if 'Nephew/Niece' in relations:
+                if 'Nephew/Niece' in og_relations:
                     cleaned_matched_list[match] = 'Nephew/Niece'
 
             elif 'Grandparent/Grandparent-in-law' in og_relations:
-                if 'Grandparent' in relations:
+                if 'Grandparent' in og_relations:
                     cleaned_matched_list[match] = 'Grandparent'
 
             elif 'Grandchild/Grandchild-in-law' in og_relations:
-                if 'Grandchild' in relations:
+                if 'Grandchild' in og_relations:
                     cleaned_matched_list[match] = 'Grandchild'
 
             elif 'Grandnephew/Grandniece/Grandnephew-in-law/Grandniece-in-law' in og_relations:
-                if 'Grandnephew/Grandniece' in relations:
+                if 'Grandnephew/Grandniece' in og_relations:
                     cleaned_matched_list[match] = 'Grandnephew/Grandniece'
 
             elif 'Grandaunt/Granduncle/Grandaunt-in-law/Granduncle-in-law' in og_relations:
-                if 'Grandaunt/Granduncle' in relations:
+                if 'Grandaunt/Granduncle' in og_relations:
                     cleaned_matched_list[match] = 'Grandaunt/Granduncle'
 
             elif 'Great-grandparent/Great-grandparent-in-law' in og_relations:
-                if 'Great-grandparent' in relations:
+                if 'Great-grandparent' in og_relations:
                     cleaned_matched_list[match] = 'Great-grandparent'
 
             elif 'Great-grandchild/Great-grandchild-in-law' in og_relations:
-                if 'Great-grandchild' in relations:
+                if 'Great-grandchild' in og_relations:
                     cleaned_matched_list[match] = 'Great-grandchild'
         else:
             cleaned_matched_list[match] = og_relations.pop()
+
+    # Add Flipped Child/Parent
+    to_add = dict()
+    for match, relation in cleaned_matched_list.items():
+        if relation == 'Parent':
+            to_add[tuple([match[1], match[0]])] = 'Child'
+        elif relation == 'Child':
+            to_add[tuple([match[1], match[0]])] = 'Parent'
+
+    cleaned_matched_list.update(to_add)
 
     outfile = open(file_location + os.sep + out_file_name, 'wt')
 
@@ -169,8 +266,7 @@ def infer_relations(file_location, in_file_name, out_file_name):
     outfile = open(file_location + os.sep + out_file_name, 'wt')
 
     for i, line in enumerate(infile):
-        if i == 0:
-            outfile.write(line)
+        if line.startswith("empi_or_mrn"):
             continue
         fields = line.strip().split("\t")
         if fields[0].strip() == fields[2].strip():
@@ -189,13 +285,12 @@ def infer_relations(file_location, in_file_name, out_file_name):
         a = 0  # break while variable
         for empi_key, or_emp_rel in matches_dict.items():
             emp_rel = or_emp_rel.copy()
-            # for i in keys(x) ###i is the key of the dictionary (EMPI)
-            for match in or_emp_rel:   ### j are the pairs of relationships associated with the empi i
+            # for i in keys(x) # i is the key of the dictionary (EMPI)
+            for match in or_emp_rel:   # j are the pairs of relationships associated with the empi i
                 if match[1] in matches_dict:    # tries to find the empi from the pair as key
                     for match_rel in matches_dict[match[1]]:    # z are the relationships from the empi that was found as a key
                         if empi_key == match_rel[1]:      # we won't infer relationships from the individual to themselves
                             continue
-
 
                         if match[0] == "Parent":
                             # The Siblings of a Parent are Aunts/Uncles
@@ -433,11 +528,11 @@ def load_references():
                         to standardized terms
         rel_abbrev_group: Distionary for flipping relationships.
     """
-
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     group_opposite = dict()
     rel_abbrev_group = dict()
 
-    infile = open('reference_files' + os.sep + 'relationships_lookup.tsv', 'rt')
+    infile = open(dir_path+os.sep+'reference_files' + os.sep + 'relationships_lookup.tsv', 'rt')
     for line in infile:
         fields = [x.strip() for x in line.strip().split("\t")]
         group_opposite[fields[2]] = fields[3]
@@ -445,7 +540,7 @@ def load_references():
         rel_abbrev_group[fields[1].lower()] = fields[2]
     infile.close()
 
-    infile = open('reference_files' + os.sep + 'relationships_and_opposites.tsv', 'rt')
+    infile = open(dir_path+os.sep+'reference_files' + os.sep + 'relationships_and_opposites.tsv', 'rt')
     for line in infile:
         fields = [x.strip() for x in line.strip().split("\t")]
         group_opposite[fields[0]] = fields[1]
@@ -496,7 +591,7 @@ def match_cleanup(df, group_opposite, high_match):
     Args:
         df (df): Pandas Dataframe of Matches and Demographic data
         group_opposite: Dictionary linking Pandas Dataframe of Demographic data
-        high_match: (int) Cuttoff to filter high number of matches too
+        high_match: (int) Cuttoff to filter high number of matches too.
 
     Returns:
         df: Cleaned Pandas Dataframe of Matches and Demographic Data
@@ -519,6 +614,10 @@ def match_cleanup(df, group_opposite, high_match):
 
     # exclude GRANDCHILD with age difference BETWEEN -20 AND 20 years
     indexNames = df[(df['relationship_group'] == 'Grandchild') & (df['age_dif'] < 20) & (df['age_dif'] > -20)].index
+    df.drop(indexNames, inplace=True)
+
+    # exclude Same Sex Spouses as do not contribute to heritability
+    indexNames = df[(df['SEX_empi'] == df['SEX_matched']) & (df['relationship_group'] =='Spouse')].index
     df.drop(indexNames, inplace=True)
 
     # flip PARENTS with age difference <-10
@@ -566,36 +665,36 @@ def find_matches(pt_df, ec_df):
     # single field.
 
     # Unique First Name
-    # pt_df_sub = pt_df[pt_df.groupby(['FirstName'])['MRN'].transform('nunique') == 1]
-    # pt_df_sub = pt_df[pt_df['FirstName'].isin(pt_df_sub['FirstName'])]
+    pt_df_sub = pt_df[pt_df.groupby(['FirstName'])['MRN'].transform('nunique') == 1]
+    pt_df_sub = pt_df[pt_df['FirstName'].isin(pt_df_sub['FirstName'])]
 
-    # df_fn = pd.merge(pt_df_sub, ec_df, how='inner', left_on='FirstName', right_on='EC_FirstName')
-    # df_fn = df_fn[['MRN_1', 'EC_Relationship', 'MRN']]
-    # df_fn['matched_path'] = 'first'
+    df_fn = pd.merge(pt_df_sub, ec_df, how='inner', left_on='FirstName', right_on='EC_FirstName')
+    df_fn = df_fn[['MRN_1', 'EC_Relationship', 'MRN']]
+    df_fn['matched_path'] = 'first'
 
     # Unique Last Name
-    # pt_df_sub = pt_df[pt_df.groupby('LastName')['MRN'].transform('nunique') == 1]
-    # pt_df_sub = pt_df[pt_df['LastName'].isin(pt_df_sub['LastName'])]
+    pt_df_sub = pt_df[pt_df.groupby('LastName')['MRN'].transform('nunique') == 1]
+    pt_df_sub = pt_df[pt_df['LastName'].isin(pt_df_sub['LastName'])]
 
-    # df_ln = pd.merge(pt_df_sub, ec_df, how='inner', left_on='LastName', right_on='EC_LastName')
-    # df_ln = df_ln[['MRN_1', 'EC_Relationship', 'MRN']]
-    # df_ln['matched_path'] = 'last'
+    df_ln = pd.merge(pt_df_sub, ec_df, how='inner', left_on='LastName', right_on='EC_LastName')
+    df_ln = df_ln[['MRN_1', 'EC_Relationship', 'MRN']]
+    df_ln['matched_path'] = 'last'
 
     # Unique Phone Number
-    # pt_df_sub = pt_df[pt_df.groupby('PhoneNumber')['MRN'].transform('nunique') == 1]
-    # pt_df_sub = pt_df[pt_df['PhoneNumber'].isin(pt_df_sub['PhoneNumber'])]
+    pt_df_sub = pt_df[pt_df.groupby('PhoneNumber')['MRN'].transform('nunique') == 1]
+    pt_df_sub = pt_df[pt_df['PhoneNumber'].isin(pt_df_sub['PhoneNumber'])]
 
-    # df_ph = pd.merge(pt_df_sub, ec_df, how='inner', left_on='PhoneNumber', right_on='EC_PhoneNumber')
-    # df_ph = df_ph[['MRN_1', 'EC_Relationship', 'MRN']]
-    # df_ph['matched_path'] = 'phone'
+    df_ph = pd.merge(pt_df_sub, ec_df, how='inner', left_on='PhoneNumber', right_on='EC_PhoneNumber')
+    df_ph = df_ph[['MRN_1', 'EC_Relationship', 'MRN']]
+    df_ph['matched_path'] = 'phone'
 
     # Unique Zip Code
-    # pt_df_sub = pt_df[pt_df.groupby('Zipcode')['MRN'].transform('nunique') == 1]
-    # pt_df_sub = pt_df[pt_df['Zipcode'].isin(pt_df_sub['Zipcode'])]
+    pt_df_sub = pt_df[pt_df.groupby('Zipcode')['MRN'].transform('nunique') == 1]
+    pt_df_sub = pt_df[pt_df['Zipcode'].isin(pt_df_sub['Zipcode'])]
 
-    # df_zip = pd.merge(pt_df_sub, ec_df, how='inner', left_on='Zipcode', right_on='EC_Zipcode')
-    # df_zip = df_zip[['MRN_1', 'EC_Relationship', 'MRN']]
-    # df_zip['matched_path'] = 'zip'
+    df_zip = pd.merge(pt_df_sub, ec_df, how='inner', left_on='Zipcode', right_on='EC_Zipcode')
+    df_zip = df_zip[['MRN_1', 'EC_Relationship', 'MRN']]
+    df_zip['matched_path'] = 'zip'
 
     # Unique First and Last Name
     pt_df_sub = pt_df[pt_df.groupby(['FirstName', 'LastName'])['MRN'].transform('nunique') == 1]
@@ -698,37 +797,92 @@ def find_matches(pt_df, ec_df):
 
 
 def clean_split_names(a_str):
-    """Cleans and splits names for matching
+    """Cleans and splits names for matching.  Unidecode coverted Unicode characters to UTF-8 ones.
 
     Args:
         s_str (str): String to be split
 
     Returns:
-        list: List containing seperate words from provided spring
+        n_str: (str) New cleaned and normalized string
 
     Todo:
-        split on space for matching of all portions of hyphenaded names and
+        Split on space for matching of all portions of hyphenaded names and
         update find_matches() to match on all portions of split names
     """
+    n_str = unidecode.unidecode(a_str.strip())
+
     return a_str.strip().lower().replace("-", " ")  # .split(" ")  TODO
 
 
 def normalize_phone_num(a_str):
-    """Normalizes Phone Number
+    """Normalizes Phone Number, removing any seperators and country codes.
 
     Args:
-        s_str (str): String to be Normalizes
+        a_str (str): String to be Normalizes
 
     Returns:
-        str: Normalized Phone number
+        c_str (str): Cleaned and normalized Phone number String
 
-    Todo:
-        Valadate correct number of digits
     """
-    return a_str.strip().lower().replace("-", "").replace("(", "").replace(")", "").replace(" ", "")
+
+    # Normalize
+    c_str = a_str.strip().lower().replace("-", "").replace("(", "").replace(")", "").replace(" ", "").replace(".", "").replace("*", "").replace("#", "").replace("+", "").strip()
 
 
-def normalize_load(pt_file, ec_file, rel_abbrev_group):
+    if "," in c_str:
+        c_str = c_str.split(",")[0]
+
+    if "x" in c_str.lower():
+        c_str = c_str.lower().split("x")[0]
+
+    if "e" in c_str.lower():
+        c_str = c_str.split("e")[0]
+
+    # Drop country codes
+    if len(c_str) > 10:
+        c_str=c_str[-10:]
+
+    # 10 minium.
+    if len(c_str) < 10:
+        return None
+
+    # Only numbers in a phone number
+    if not c_str.isnumeric():
+        return None
+
+    return c_str
+
+
+def normalize_zip_code(a_str):
+    """Normalizes Zip Code
+
+    Args:
+        a_str (str): A string to be Normalized
+
+    Returns:
+        c_str (str): Cleaned and normalized zip code string
+
+    """
+
+    # Normalize
+    c_str = a_str.strip().lower().replace("-", "").replace("(", "").replace(")", "").replace(" ", "").replace(".", "").replace("*", "").replace("#", "").strip()
+
+    # Drop 4 digit
+    if len(c_str) >5:
+        c_str=c_str[:5]
+
+    # 5 minium.
+    if len(c_str)<5:
+        return None
+
+    # Only numbers
+    if not c_str.isnumeric():
+        return None
+
+    return c_str
+
+
+def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group):
     """Normalizes names from the Emergency Contact and Patient data and loads
     it into pandas data frame.
 
@@ -744,8 +898,17 @@ def normalize_load(pt_file, ec_file, rel_abbrev_group):
 
     """
 
-    pt_df = pd.read_csv(pt_file, sep='\t', dtype=str)
-    ec_df = pd.read_csv(ec_file, sep='\t', dtype=str)
+    my_encoding = find_encoding(pt_file)
+    pt_df = pd.read_csv(pt_file, sep='\t', dtype=str, encoding=my_encoding)
+    pt_df.columns = ['MRN', 'FirstName', 'LastName', 'PhoneNumber', 'Zipcode']
+    pt_row_count = len(pt_df.index)
+    print("Raw number of records in PT_FILE:\t" + str(pt_row_count))
+
+    my_encoding = find_encoding(ec_file)
+    ec_df = pd.read_csv(ec_file, sep='\t', dtype=str, encoding=my_encoding)
+    ec_df.columns = ['MRN_1', 'EC_FirstName', 'EC_LastName', 'EC_PhoneNumber', 'EC_Zipcode', 'EC_Relationship']
+    ec_row_count = len(ec_df.index)
+    print("Raw number of records in EC_FILE:\t" + str(ec_row_count))
 
     # Drop duplicate rows
     pt_df = pt_df.drop_duplicates()
@@ -753,17 +916,31 @@ def normalize_load(pt_file, ec_file, rel_abbrev_group):
 
     # Drop duplicate records by MRN.
     pt_df = pt_df.drop_duplicates(subset=['MRN'], keep=False)
-    ec_df = ec_df.drop_duplicates(subset=['MRN_1'], keep=False)
+
+    print("Duplicates dropped from PT_FILE:\t" + str(pt_row_count - len(pt_df.index)))
+    print("Duplicates dropped from EC_FILE:\t" + str(ec_row_count - len(ec_df.index)))
+    pt_row_count = len(pt_df.index)
+    ec_row_count = len(ec_df.index)
+
+    # Require First, Last, Phone Number, and EC Relation not be Null
+    ec_df.dropna(subset=['EC_FirstName'], inplace=True)
+    ec_df.dropna(subset=['EC_PhoneNumber'], inplace=True)
+    ec_df.dropna(subset=['EC_LastName'], inplace=True)
+    ec_df.dropna(subset=['EC_Relationship'], inplace=True)
 
     # Clean up PT info
+    pt_df = pt_df.astype(str)
     pt_df['FirstName'] = pt_df['FirstName'].apply(clean_split_names)
     pt_df['LastName'] = pt_df['LastName'].apply(clean_split_names)
     pt_df['PhoneNumber'] = pt_df['PhoneNumber'].apply(normalize_phone_num)
+    pt_df['Zipcode'] = pt_df['Zipcode'].apply(normalize_zip_code)
 
     # Clean up Emergency Contact
+    ec_df = ec_df.astype(str)
     ec_df['EC_FirstName'] = ec_df['EC_FirstName'].apply(clean_split_names)
     ec_df['EC_LastName'] = ec_df['EC_LastName'].apply(clean_split_names)
     ec_df['EC_PhoneNumber'] = ec_df['EC_PhoneNumber'].apply(normalize_phone_num)
+    ec_df['EC_Zipcode'] = ec_df['EC_Zipcode'].apply(normalize_zip_code)
 
     # Standardize relationships
     ec_df['EC_Relationship'] = ec_df['EC_Relationship'].str.lower()
@@ -772,7 +949,45 @@ def normalize_load(pt_file, ec_file, rel_abbrev_group):
     # drop unknown relationship
     ec_df = ec_df.loc[ec_df["EC_Relationship"].isin(rel_abbrev_group.values())]
 
-    return pt_df.drop_duplicates(), ec_df.drop_duplicates()
+    # Require First, Last, Phone Number, and EC Relation not be Null
+    ec_df.dropna(subset=['EC_FirstName'], inplace=True)
+    ec_df.dropna(subset=['EC_PhoneNumber'], inplace=True)
+    ec_df.dropna(subset=['EC_LastName'], inplace=True)
+    ec_df.dropna(subset=['EC_Relationship'], inplace=True)
+
+    # Require First, Last, Phone Number not be Null
+    pt_df.dropna(subset=['FirstName'], inplace=True)
+    pt_df.dropna(subset=['LastName'], inplace=True)
+    pt_df.dropna(subset=['PhoneNumber'], inplace=True)
+
+    pt_df = pt_df.drop_duplicates()
+    ec_df = ec_df.drop_duplicates()
+
+    print("Total dropped from PT_FILE for incomplete data:\t" + str(pt_row_count - len(pt_df.index)))
+    print("Total dropped from EC_FILE for incomplete data:\t" + str(ec_row_count - len(ec_df.index)))
+    pt_row_count = len(pt_df.index)
+    ec_row_count = len(ec_df.index)
+    print("Number of PT Records for analysis:\t"+ str(pt_row_count))
+    print("Number of EC Records for analysis:\t"+ str(ec_row_count))
+
+
+    my_encoding = find_encoding(dg_file)
+    dg_df = pd.read_csv(dg_file, sep='\t', dtype=str, encoding=my_encoding)
+    dg_df = dg_df.drop_duplicates()
+    dg_df.columns = ['MRN', 'BirthYear', 'Sex']
+    dg_df['Sex'] = dg_df['Sex'].apply(fix_sex)
+
+
+    dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
+
+    dg_dict = dict()
+
+    for index, row in dg_df.iterrows():
+        dg_dict[row['MRN']] = tuple([row['Sex'], row['BirthYear']])
+
+
+
+    return pt_df, ec_df, dg_df, dg_dict
 
 
 def parse_arguments():
@@ -837,8 +1052,8 @@ def main():
         cli_args.pt_file = "example_files" + os.sep + "pt_file.tsv"
         cli_args.ec_file = "example_files" + os.sep + "ec_file.tsv"
         cli_args.dg_file = "example_files" + os.sep + "pt_demog.tsv"
-        cli_args.mc_link = "example_files" + os.sep + "mc_link.tsv"
-        cli_args.of_link = "example_files" + os.sep + "of_link.tsv"
+        cli_args.mc_link = "example_files" + os.sep + "mc_file.tsv"
+        cli_args.of_link = "example_files" + os.sep + "of_file.tsv"
         cli_args.out_dir = "example_files"
 
     print(cli_args)
@@ -846,36 +1061,33 @@ def main():
     group_opposite, rel_abbrev_group = load_references()
 
     # Step 1: Load and Match PT to EC
-    pt_df, ec_df = normalize_load(cli_args.pt_file, cli_args.ec_file, rel_abbrev_group)
+    pt_df, ec_df, dg_df, dg_dict = normalize_load(cli_args.pt_file, cli_args.ec_file, cli_args.dg_file, rel_abbrev_group)
     df_cumc_patient = find_matches(pt_df, ec_df)
     df_cumc_patient.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient.tmp.tsv', sep='\t', index=False)
 
     # Step 2: Clean Matches and Relationship Inference
-    dg_df = pd.read_csv(cli_args.dg_file, sep='\t', dtype=str)
-    dg_df = dg_df.drop_duplicates()
-    dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
-
-    dg_dict = dict()
-
-    for index, row in dg_df:
-        dg_dict[row['MRN']] = row['Sex']
-
 
     df_cumc_patient_wdg = merge_matches_demog(df_cumc_patient, dg_df)
     df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tmp.tsv', sep='\t', index=False)
     df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite, cli_args.high_match)
     df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.tsv', sep='\t', index=False)
 
-    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_opposites_clean.tsv","output_actual_and_inferred_relationships.tsv")
-    clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered1.tsv")
+    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_opposites_clean.tsv","output_actual_and_inferred_relationships1.tsv")
+    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered1.tsv")
 
-    cleaned_matched_link_list = dict()
+    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered1.tsv","output_actual_and_inferred_relationships2.tsv")
+    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered2.tsv")
 
-    # Lets run it a few time.
-    for i in range(2,4):
-        matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered"+str(i-1)+".tsv","output_actual_and_inferred_relationships"+str(i)+".tsv")
-        cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered"+str(i)+".tsv")
+    cleaned_matched_link_list = stats_and_load_other_links(cli_args.out_dir, cli_args.of_link, cli_args.mc_link, cleaned_matched_link_list, dg_dict, rel_abbrev_group, ec_df)
 
+    outfile = open(cli_args.out_dir + os.sep + "patient_relations_w_infered_w_of_mc.tsv", 'wt')
+
+    for match, relation in cleaned_matched_link_list.items():
+        outfile.write(match[0] + "\t" + relation + "\t" + match[1] + "\n")
+    outfile.close()
+
+    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered_w_of_mc.tsv","output_actual_and_inferred_relationships2.tsv")
+    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered2.tsv")
 
 
 

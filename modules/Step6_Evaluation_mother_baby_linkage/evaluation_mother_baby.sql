@@ -6,7 +6,7 @@
 select *, tp/(tp+fn) as sensitivity, tp/(tp+fp) as ppv
 from
 (
-	# True Positives (TP)
+	--# True Positives (TP)
 	select count(distinct mrn, relation_mrn) as tp
 	from database.ACTUAL_AND_INF_REL_CLEAN_FINAL
 	join database.mother_child_linkage on (mrn = child_mrn and relation_mrn = mother_mrn)
@@ -14,7 +14,7 @@ from
 ) tp
 join
 (
-	# False Positives (FP)
+	--# False Positives (FP)
 	select sum(mismatch) as fp
 	from
 	(
@@ -27,7 +27,7 @@ join
 ) fp
 join
 (
-	# False Negatives (FN)
+	--# False Negatives (FN)
 	select count(*) as fn
 	from database.mother_child_linkage
 	where child_mrn not in (select mrn from database.ACTUAL_AND_INF_REL_CLEAN_FINAL)
@@ -46,7 +46,7 @@ join relations_matched_clean b on (a.mrn = b.mrn and a.relationship = b.relation
 select *, tp/(tp+fp) as ppv
 from
 (
-	# True Positives (TP)
+	--# True Positives (TP)
 	select npath, count(*) as tp
 	from
 	(
@@ -60,7 +60,7 @@ from
 ) tp
 join
 (
-	# False Positives (FP)
+	--# False Positives (FP)
 	select npath, sum(mismatch) as fp
 	from
 	(
@@ -85,7 +85,7 @@ order by ppv desc;
 select *, tp/(tp+fn) as sensitivity, tp/(tp+fp) as ppv
 from
 (
-	# True Positives (TP)
+	--# True Positives (TP)
 	select matched_path, count(distinct mrn, relation_mrn) as tp
 	from database.ACTUAL_AND_INF_REL_CLEAN_FINAL_w_matched_path
 	join database.mother_child_linkage on (mrn = child_mrn and relation_mrn = mother_mrn)
@@ -94,7 +94,7 @@ from
 ) tp
 join
 (
-	# False Positives (FP)
+	--# False Positives (FP)
 	select matched_path, sum(mismatch) as fp
 	from
 	(
@@ -108,7 +108,7 @@ join
 ) fp using (matched_path)
 join
 (
-	# False Negatives (FN)
+	--# False Negatives (FN)
 	select 'first' as matched_path, count(*) as fn
 	from database.mother_child_linkage
 	where child_mrn not in (select mrn from database.ACTUAL_AND_INF_REL_CLEAN_FINAL_w_matched_path where matched_path = 'first')
