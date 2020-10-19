@@ -44,9 +44,9 @@ The MRN in the Patient demographic file should corrispond to the MRN in the Pati
 
 ## Mother Child Linkage:
 
-| MRN_Child | MRN_Mother |
+| MRN_Mother | MRN_Child |
 | --- | --- |
-| 21 | 22 |
+| 22 | 21 |
 
 The Mother Child Linkage is established in the delivery room and is the most accurate relationship link in an EHR system.  RIFTEHR uses this as True Positives to determine accuracy  matching of Emergency Contact Data, and integrate this information into the families that are output.
 

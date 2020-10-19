@@ -18,19 +18,77 @@ __credits__ = ["Fernanda Polubriaginof", "Thomas Nate Person", "Katie LaRow, ",
 """
 
 
+def bi_directional(relation):
+    """ Flips relation for bidriectional directed relation
+    Args:
+        relation (str): Relationship
+    Returns:
+        new_relation(str): Flipped relationship or None
+    """
+    new_relation = None
+    if relation == 'Parent':
+        new_relation = 'Child'
+    elif relation == 'Child':
+        new_relation = 'Parent'
+    elif relation == 'Sibling':
+        new_relation = 'Sibling'
+    elif relation == 'Cousin':
+        new_relation = 'Cousin'
+    elif relation == 'Grandparent':
+        new_relation = 'Grandchild'
+    elif relation == 'Grandchild':
+        new_relation = 'Grandparent'
+    elif relation == 'Great-grandparent':
+        new_relation = 'Great-grandchild'
+    elif relation == 'Great-grandchild':
+        new_relation = 'Great-grandparent'
+    elif relation == 'Aunt/Uncle':
+        new_relation = 'Nephew/Niece'
+    elif relation == 'Nephew/Niece':
+        new_relation = 'Aunt/Uncle'
+    elif relation == 'Grandaunt/Granduncle':
+        new_relation = 'Grandnephew/Grandniece'
+    elif relation == 'Grandnephew/Grandniece':
+        new_relation = 'Grandaunt/Granduncle'
+
+    return new_relation
+
+
 def fix_sex(a_str):
+    """Strips to single letter sex abbreviation
+
+    Args:
+        a_str (str): String indicating Sex
+
+    Returns:
+        n_str (str): Single Character indicating sex or None
+    """
     n_str = a_str.strip().upper()[:1]
-    return n_str
+    if n_str == "F" or n_str == "M":
+        return n_str
+    else:
+        return None
 
 
 def find_encoding(fname):
+    """Finds file encoding for loading
+
+    Args:
+        fname (str): Name of file to analyze for character encoding
+
+
+    Returns:
+        charenc: Detected encoding
+    """
     r_file = open(fname, 'rb').read()
     result = chardet.detect(r_file)
     charenc = result['encoding']
     return charenc
 
 
-def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_link_list, dg_dict, rel_abbrev_group, ec_df):
+def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_link_list, dg_dict, rel_abbrev_group):
+
+    outfile = open(file_location + os.sep + "QC_stats.tsv", 'wt')
 
     of_link = dict()
     mc_link = dict()
@@ -46,10 +104,12 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
             fields = line.strip().split("\t")
             relation = fields[1].strip().lower()
             if relation in rel_abbrev_group:
-                of_link[tuple([fields[0].strip(), fields[-1].strip()])] = rel_abbrev_group[relation]
+                relation_group = rel_abbrev_group[relation]
+                of_link[tuple([fields[0].strip(), fields[-1].strip()])] = relation_group
+                new_relation = bi_directional(relation_group)
+                if new_relation is not None:
+                    of_link[tuple([fields[-1].strip(), fields[0].strip()])] = new_relation
         infile.close()
-
-    bad_count = 0
 
     if mc_file is not None:
         infile = open(mc_file, 'rt')
@@ -59,39 +119,39 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
             fields = line.strip().split("\t")
 
             # For stats, not considering links not determinable from ec data
-            if fields[0].strip() in ec_df['MRN_1'].values and fields[-1].strip() in ec_df['MRN_1'].values:
-                mc_link_test[tuple([fields[0].strip(), fields[-1].strip()])] = "Child"
-            elif fields[0].strip() not in ec_df['MRN_1'].values and fields[-1].strip() not in ec_df['MRN_1'].values:
-                bad_count += 1
-                print(fields[0].strip())
-            mc_link[tuple([fields[0].strip(), fields[-1].strip()])] = "Child"
+            if fields[0].strip() in dg_dict and fields[-1].strip() in dg_dict:
+                mc_link_test[tuple([fields[0].strip(), fields[-1].strip()])] = "Parent"
+            mc_link[tuple([fields[0].strip(), fields[-1].strip()])] = "Parent"
+            mc_link[tuple([fields[-1].strip(), fields[0].strip()])] = "Child"
             if tuple([fields[0].strip(), fields[-1].strip()]) in cleaned_matched_link_list:
                 imput_link_test[tuple([fields[0].strip(), fields[-1].strip()])] = cleaned_matched_link_list[tuple([fields[0].strip(), fields[-1].strip()])]
         infile.close()
 
-    print("Maximum Number of Mother/Child TP tested:\t"+str(len(mc_link_test)))
-    print("Maximum Number of imputed Mother/Child TP tested:\t"+str(len(imput_link_test)))
-    print(imput_link_test)
+        outfile.write("Maximum Number of Mother/Child TP tested:\t"+str(len(mc_link_test))+"\n")
+        outfile.write("Maximum Number of imputed Mother/Child TP tested:\t"+str(len(imput_link_test))+"\n")
 
-    TP_count = 0
-    FP_count = 0
-    FN_count = len(mc_link_test) - len(imput_link_test)
-    # No TN_count possible
+        TP_count = 0
+        FP_count = 0
+        FN_count = len(mc_link_test) - len(imput_link_test)
+        # No TN_count possible
 
-    for match, relation in imput_link_test.items():
-        if relation == 'Child':
-            TP_count += 1
-        else:
-            FP_count += 1
+        for match, relation in imput_link_test.items():
+            if relation == 'Parent':
+                TP_count += 1
+            else:
+                FP_count += 1
 
-    outfile = open(file_location + os.sep + "QC_stats.tsv", 'wt')
-    outfile.write("MC_TP_Links_Tested\t"+str(len(mc_link_test))+"\n")
-    outfile.write("MC_Links_Imputed\t"+str(len(imput_link_test))+"\n")
-    outfile.write("TP_count\t"+str(TP_count)+"\n")
-    outfile.write("FP_count\t"+str(FP_count)+"\n")
-    outfile.write("FN_count\t"+str(FN_count)+"\n")
-    outfile.write("sensitivity\t"+str(TP_count/(TP_count+FN_count))+"\n")
-    outfile.write("ppv\t"+str(TP_count/(TP_count+FP_count))+"\n")
+        outfile.write("MC_TP_Links_Tested\t"+str(len(mc_link_test))+"\n")
+        outfile.write("MC_Links_Imputed\t"+str(len(imput_link_test))+"\n")
+        outfile.write("TP_count\t"+str(TP_count)+"\n")
+        outfile.write("FP_count\t"+str(FP_count)+"\n")
+        outfile.write("FN_count\t"+str(FN_count)+"\n")
+        if TP_count > 0 or FN_count > 0:
+            outfile.write("sensitivity\t"+str(TP_count/(TP_count+FN_count))+"\n")
+        if TP_count > 0 or FP_count > 0:
+            outfile.write("ppv\t"+str(TP_count/(TP_count+FP_count))+"\n")
+    else:
+        outfile.write("No Mother/Child TP link data provided\n")
     outfile.close()
 
     cleaned_matched_link_list.update(of_link)
@@ -118,6 +178,11 @@ def get_specific_relation(pt_id, relation, dg_dict):
             specific_relation = "Mother"
         else:
             specific_relation = "Father"
+    if relation == "Sibling":
+        if dg_dict[pt_id] == "F":
+            specific_relation = "Sister"
+        else:
+            specific_relation = "Brother"
     elif relation == "Aunt/Uncle":
         if dg_dict[pt_id] == "F":
             specific_relation = "Aunt"
@@ -133,6 +198,12 @@ def get_specific_relation(pt_id, relation, dg_dict):
             specific_relation = "Grandniece"
         else:
             specific_relation = "Grandnephew"
+    elif relation == 'Grandaunt/Granduncle':
+        if dg_dict[pt_id] == "F":
+            specific_relation = "Grandaunt"
+        else:
+            specific_relation = "Granduncle"
+
 
     return specific_relation
 
@@ -229,13 +300,12 @@ def clean_inferences(file_location, matches_dict, out_file_name):
         else:
             cleaned_matched_list[match] = og_relations.pop()
 
-    # Add Flipped Child/Parent
+    # Add bidirectional relations
     to_add = dict()
     for match, relation in cleaned_matched_list.items():
-        if relation == 'Parent':
-            to_add[tuple([match[1], match[0]])] = 'Child'
-        elif relation == 'Child':
-            to_add[tuple([match[1], match[0]])] = 'Parent'
+        new_relation = bi_directional(relation)
+        if new_relation is not None:
+            to_add[tuple([match[1], match[0]])] = new_relation
 
     cleaned_matched_list.update(to_add)
 
@@ -809,6 +879,8 @@ def clean_split_names(a_str):
         Split on space for matching of all portions of hyphenaded names and
         update find_matches() to match on all portions of split names
     """
+
+    #unicode letters and symbols to
     n_str = unidecode.unidecode(a_str.strip())
 
     return a_str.strip().lower().replace("-", " ")  # .split(" ")  TODO
@@ -828,7 +900,7 @@ def normalize_phone_num(a_str):
     # Normalize
     c_str = a_str.strip().lower().replace("-", "").replace("(", "").replace(")", "").replace(" ", "").replace(".", "").replace("*", "").replace("#", "").replace("+", "").strip()
 
-
+    # remove extentions
     if "," in c_str:
         c_str = c_str.split(",")[0]
 
@@ -838,7 +910,7 @@ def normalize_phone_num(a_str):
     if "e" in c_str.lower():
         c_str = c_str.split("e")[0]
 
-    # Drop country codes
+    # Drop country codes, only the last 10 digits
     if len(c_str) > 10:
         c_str=c_str[-10:]
 
@@ -1070,24 +1142,29 @@ def main():
     df_cumc_patient_wdg = merge_matches_demog(df_cumc_patient, dg_df)
     df_cumc_patient_wdg.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient_wdg.tmp.tsv', sep='\t', index=False)
     df_cumc_patient_wdg_clean = match_cleanup(df_cumc_patient_wdg, group_opposite, cli_args.high_match)
-    df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.tsv', sep='\t', index=False)
+    df_cumc_patient_wdg_clean.to_csv(cli_args.out_dir + os.sep + 'patient_relations_w_opposites_clean.tmp.tsv', sep='\t', index=False)
 
-    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_opposites_clean.tsv","output_actual_and_inferred_relationships1.tsv")
-    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered1.tsv")
+    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_opposites_clean.tmp.tsv","output_actual_and_inferred_relationships1.tmp.tsv")
+    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered1.tmp.tsv")
 
-    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered1.tsv","output_actual_and_inferred_relationships2.tsv")
-    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered2.tsv")
+    cleaned_matched_link_list = stats_and_load_other_links(cli_args.out_dir, cli_args.of_link, cli_args.mc_link, cleaned_matched_link_list, dg_dict, rel_abbrev_group)
 
-    cleaned_matched_link_list = stats_and_load_other_links(cli_args.out_dir, cli_args.of_link, cli_args.mc_link, cleaned_matched_link_list, dg_dict, rel_abbrev_group, ec_df)
-
-    outfile = open(cli_args.out_dir + os.sep + "patient_relations_w_infered_w_of_mc.tsv", 'wt')
-
+    outfile = open(cli_args.out_dir + os.sep + "patient_relations_w_infered_w_of_mc.tmp.tsv", 'wt')
     for match, relation in cleaned_matched_link_list.items():
         outfile.write(match[0] + "\t" + relation + "\t" + match[1] + "\n")
     outfile.close()
 
-    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered_w_of_mc.tsv","output_actual_and_inferred_relationships2.tsv")
-    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered2.tsv")
+    matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered_w_of_mc.tmp.tsv","output_actual_and_inferred_relationships2.tmp.tsv")
+    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered2.tmp.tsv")
+
+    #cleaned_matched_link_list = stats_and_load_other_links(cli_args.out_dir, cli_args.of_link, cli_args.mc_link, cleaned_matched_link_list, dg_dict, rel_abbrev_group)
+
+    #outfile = open(cli_args.out_dir + os.sep + "patient_relations_w_infered_w_of_mc.tmp.tsv", 'wt')
+
+
+
+    #matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered_w_of_mc.tmp.tsv","output_actual_and_inferred_relationships2.tmp.tsv")
+    #cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "patient_relations_w_infered2.tmp.tsv")
 
 
 
