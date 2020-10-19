@@ -1,7 +1,7 @@
 # A list of files found in this directory and descriptions of them.
 
-## original directory
-These are files for use in the original implemention of the RIFTEHR algorithm found in the `modules` directory.
+## original
+Directory containing files provided in the original implemention of the RIFTEHR algorithm found in the `modules` directory.
 
 ## Example Input files:
 
