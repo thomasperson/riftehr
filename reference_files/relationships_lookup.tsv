@@ -36,3 +36,6 @@ Son	Child	Child	Parent
 Daughter	Child	Child	Parent
 SPO	Spouse	Spouse	Spouse
 Spouse	Spouse	Spouse	Spouse
+Husband	Spouse	Spouse	Spouse
+Wife	Spouse	Spouse	Spouse
+

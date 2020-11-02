@@ -17,6 +17,7 @@ empi_or_mrn	relationship	relation_empi_or_mrn	matched_path
 16	Aunt/Uncle	13	first,phone
 15	Parent	14	first,phone
 21	Parent	22	first,phone
+22	Spouse	25	first,phone
 11	Child	1	first,zip
 1	Spouse	2	first,zip
 5	Parent	2	first,zip
@@ -35,6 +36,7 @@ empi_or_mrn	relationship	relation_empi_or_mrn	matched_path
 16	Aunt/Uncle	13	first,zip
 15	Parent	14	first,zip
 21	Parent	22	first,zip
+22	Spouse	25	first,zip
 11	Child	1	last,phone
 1	Spouse	2	last,phone
 5	Parent	2	last,phone
@@ -92,6 +94,7 @@ empi_or_mrn	relationship	relation_empi_or_mrn	matched_path
 16	Aunt/Uncle	13	first,last,phone
 15	Parent	14	first,last,phone
 21	Parent	22	first,last,phone
+22	Spouse	25	first,last,phone
 11	Child	1	fist,last,zip
 1	Spouse	2	fist,last,zip
 5	Parent	2	fist,last,zip
@@ -110,6 +113,7 @@ empi_or_mrn	relationship	relation_empi_or_mrn	matched_path
 16	Aunt/Uncle	13	fist,last,zip
 15	Parent	14	fist,last,zip
 21	Parent	22	fist,last,zip
+22	Spouse	25	fist,last,zip
 11	Child	1	first,phone,zip
 1	Spouse	2	first,phone,zip
 5	Parent	2	first,phone,zip
@@ -128,6 +132,7 @@ empi_or_mrn	relationship	relation_empi_or_mrn	matched_path
 16	Aunt/Uncle	13	first,phone,zip
 15	Parent	14	first,phone,zip
 21	Parent	22	first,phone,zip
+22	Spouse	25	first,phone,zip
 11	Child	1	last,phone,zip
 1	Spouse	2	last,phone,zip
 5	Parent	2	last,phone,zip
@@ -162,3 +167,4 @@ empi_or_mrn	relationship	relation_empi_or_mrn	matched_path
 16	Aunt/Uncle	13	first,last,phone,zip
 15	Parent	14	first,last,phone,zip
 21	Parent	22	first,last,phone,zip
+22	Spouse	25	first,last,phone,zip

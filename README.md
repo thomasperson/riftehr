@@ -6,7 +6,9 @@ Remember to always respect patient privacy.
 
 ---
 
-This is a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr orgianlly developed by http://riftehr.tatonettilab.org  Original implemention can also be found in this repo under the `modules` directory along with a README for how to run them.
+This is a first pass of a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr orgianlly developed by http://riftehr.tatonettilab.org.  Original implemention can also be found in this repo under the `modules` directory along with a README for how to run them.  Please submit any bugs found/fixed to the repo.  Questions/Comments/issues concerning this implemention should be sent to Thomas Person, any Questions/Comments about the RIFTEHR algorithm itself should be directed to the Tatonetti lab.
+
+---
 
 Three input files are required.  A tab seperated patient file(`pt_file.tsv`), a tab seperated emergency contact file (`ec_file.tsv`) the patients, and a tab seperated file containing the patient demographic data(`pt_demog.tsv`).  A fourth optional file is tab serparated Mother/Child data (`mc_file.tsv`) that will be used as TP data for some statistical analysis of imputed relationships and will be integrated into the familys.  A final fith option file (`of_file.tsv`) is a tab serperated file of other family linkages that may be captured in an EHR system.  Toy example files can also be found in the `example_files` directory. Relationship abbreviation information, relationship groups, and their oposites can be found in the `reference_files` directory.
 
@@ -54,13 +56,11 @@ The Mother Child Linkage is established in the delivery room and is the most acc
 
 ## Other Family Linkages:
 
-| MRN_2 | Relationship | MRN_3 |
+| MRN_2 | MRN_3 | Relationship |
 | --- | --- |  --- |
-| 21 | Father | 25 |
+| 21 | 25 | Father |
 
 Other self reported family relations are often captured in an EHR.  These links will also be integrated into the families generated from the Emergency Contact Information.
-
-
 
 
 

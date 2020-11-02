@@ -1,9 +1,32 @@
-Maximum Number of Mother/Child TP tested:	1
-Maximum Number of imputed Mother/Child TP tested:	1
+Raw number of records in PT_FILE:	21
+Raw number of records in EC_FILE:	20
+Raw row duplicates dropped from PT_FILE:	0
+Raw row duplicates dropped from EC_FILE:	0
+Total rows dropped from PT_FILE for incomplete data:	0
+Total rows dropped from EC_FILE for incomplete data:	0
+Number of PT Record IDs dropped from analysis for incomplete data:	0
+Number of EC Record IDs dropped from analysis for incomplete data:	0
+Number of PT Record IDs for analysis:	21
+Number of EC Record IDs fpr analysis:	20
+Raw number of Demographic Records rows for analysis:	20
+Raw number of Demographic Record IDs for analysis:	19
+
+PT MRNs dropped for incomplete Demographic Data:	
+Number of demographic Record IDs for analysis:	18
+
+Total provided Mother/Child links:	1
+Total Number of Mother/Child IDs w/o proper contact information:	0
+Total Number of Mother/Child IDs w/o proper demographic information:	0
+Total Number of Mother/Child IDs w/o proper emergency contact information:	0
+Number of Provided TP Mother/Child links:	1
+Number of Test Imputed Mother/Child links:	1
+Number of Test TP links w/missing EC data:	0
 MC_TP_Links_Tested	1
 MC_Links_Imputed	1
-TP_count	1
-FP_count	0
-FN_count	0
-sensitivity	1.0
-ppv	1.0
+MC_TP_count	1
+MC_FP_count	0
+MC_FN_count	0
+MC_FN_NO_EC	0
+MC sensitivity	1.0
+MC ppv	1.0
+

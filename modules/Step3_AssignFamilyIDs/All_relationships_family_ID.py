@@ -21,7 +21,7 @@ import networkx.algorithms.isomorphism as iso
 inf = sys.argv[1]
 ouf = sys.argv[2]
 
-reader = csv.reader(open(inf, 'rU'), delimiter = ',')
+reader = csv.reader(open(inf, 'rU'), delimiter=',')
 header = reader.next()
 
 a = []
@@ -37,13 +37,14 @@ for i in xrange(len(a)):
     all_relationships.append(tuple([a[i], b[i], rel[i]]))
 
 
-u = nx.Graph() # directed graph
+u = nx.Graph()  # directed graph
 
 for i in xrange(len(all_relationships)):
-    u.add_edge(all_relationships[i][0], all_relationships[i][1], rel = all_relationships[i][2])
+    u.add_edge(all_relationships[i][0], all_relationships[i][1],
+               rel=all_relationships[i][2])
 
-#Components sorted by size
-comp = sorted(nx.connected_component_subgraphs(u), key = len, reverse=True)
+# Components sorted by size
+comp = sorted(nx.connected_component_subgraphs(u), key=len, reverse=True)
 
 outfh = open(ouf, 'w')
 writer = csv.writer(outfh)

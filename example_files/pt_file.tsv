@@ -16,6 +16,7 @@ MRN	FirstName	LastName	PhoneNumber	Zipcode
 15	Eve	Taylor	333-444-5555	11776
 16	Grace	Taylor	555-666-7777	20190
 17	Tom	Taylor	555-666-7777	20190
-20	Beavis	Butt-Head	123-456-7890	90210
+20	Beavis	Butt-Head	1.123-456-7890	90210
 21	Lisa	Simpson	(555) 111-1111	90210
 22	Marge	Simpson	(555)111-1111	90210
+25	Homer	Simpson	555.111.1111	90210-1234
