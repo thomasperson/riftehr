@@ -1208,7 +1208,7 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     # print("Number of PT Record IDs for analysis:\t"+ str(pt_df['MRN'].nunique()))
     # print("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique()))
     outfile.write("Number of PT Record IDs for analysis:\t"+ str(pt_df['MRN'].nunique())+"\n")
-    outfile.write("Number of EC Record IDs fpr analysis:\t"+ str(ec_df['MRN_1'].nunique())+"\n")
+    outfile.write("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique())+"\n")
 
     my_encoding = find_encoding(dg_file)
     dg_df = pd.read_csv(dg_file, sep='\t', dtype=str, encoding=my_encoding)
@@ -1218,9 +1218,10 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     outfile.write("Raw number of Demographic Records rows for analysis:\t"+ str(len(dg_df.index))+"\n")
 
     # print("Raw number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique()))
-    outfile.write("Raw number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n\n")
+    outfile.write("Raw number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n")
 
     dg_df = dg_df.drop_duplicates()
+    dg_uniqe_ids = dg_df['MRN'].nunique()
     #outfile.write("Raw number of duplicate demographic Records dropped:\t"+ str(len(dg_df.index))+"\n")
 
     # Set Sex to the letters F or M and drop any non conforming
@@ -1230,15 +1231,17 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
 
     dg_df = dg_df.drop_duplicates()
 
-    outfile.write("PT MRNs dropped for incomplete Demographic Data:\t")
-    for v in dg_df_hasNA["MRN"]:
-        outfile.write(str(v)+", ")
-    outfile.write("\n")
+    #outfile.write("PT MRNs dropped for incomplete Demographic Data:\t")
+    #for v in dg_df_hasNA["MRN"]:
+    #    outfile.write(str(v)+", ")
+    #outfile.write("\n")
 
     dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
 
+    outfile.write("Number of Demographic Records dropped form analysis for incomplete data:\t"+ str(dg_uniqe_ids - dg_df['MRN'].nunique())+"\n\n")
+
     # print("Number of demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique()))
-    outfile.write("Number of demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n\n")
+    outfile.write("Number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n\n")
 
     dg_dict = dict()
 
