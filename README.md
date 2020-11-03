@@ -6,15 +6,17 @@ Remember to always respect patient privacy.
 
 ---
 
-This is a first pass of a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr orgianlly developed by http://riftehr.tatonettilab.org.  Original implemention can also be found in this repo under the `modules` directory along with a README for how to run them.  Please submit any bugs found/fixed to the repo.  Questions/Comments/issues concerning this implemention should be sent to Thomas Person, any Questions/Comments about the RIFTEHR algorithm itself should be directed to the Tatonetti lab.
+This is a first pass of a pure python 3.x implemntiaton of https://github.com/tatonetti-lab/riftehr orgianlly developed by http://riftehr.tatonettilab.org.  Original implemention can also be found in this repo under the `modules` directory along with a README for how to run them.  Please submit any bugs found/fixed to the repo.  Questions/Comments/issues concerning this implemention should be sent to Thomas Person, any Questions/Comments about the RIFTEHR algorithm itself should be directed to the Tatonetti lab.  Should you use this implementation in your research please cite: `Polubriaginof FCG, Vanguri R, Quinnies K, Belbin GM, Yahi A, Salmasian H, Lorberbaum T, Nwankwo V, Li L, Shervey MM, Glowe P, Ionita-Laza I, Simmerling M, Hripcsak G, Bakken S, Goldstein D, Kiryluk K, Kenny EE, Dudley J, Vawdrey DK, Tatonetti NP. Disease Heritability Inferred from Familial Relationships Reported in Medical Records. Cell. 2018 Jun 14;173(7):1692-1704.e11. doi: 10.1016/j.cell.2018.04.032. Epub 2018 May 17. PMID: 29779949; PMCID: PMC6015747`
+
 
 ---
 
+## Input files:
 Three input files are required.  A tab seperated patient file(`pt_file.tsv`), a tab seperated emergency contact file (`ec_file.tsv`) the patients, and a tab seperated file containing the patient demographic data(`pt_demog.tsv`).  A fourth optional file is tab serparated Mother/Child data (`mc_file.tsv`) that will be used as TP data for some statistical analysis of imputed relationships and will be integrated into the familys.  A final fith option file (`of_file.tsv`) is a tab serperated file of other family linkages that may be captured in an EHR system.  Toy example files can also be found in the `example_files` directory. Relationship abbreviation information, relationship groups, and their oposites can be found in the `reference_files` directory.
 
-# Input files:
 
-## Patient file:
+
+### Patient file:
 
 | MRN | FirstName | LastName | PhoneNumber | Zipcode |
 | --- | --- | --- | --- | --- |
@@ -24,7 +26,7 @@ Should only be one record per MRN, any duplicates will be dropped.
 
 
 
-## Patient emergency contact:
+### Patient emergency contact:
 
 | MRN_1 | EC_FirstName | EC_LastName | EC_PhoneNumber | EC_Zipcode | EC_Relationship |
 | --- | --- | --- | --- | --- | --- |
@@ -34,7 +36,7 @@ MRN_1 in the emergency contact file should corrispond to the MRN in the Patient 
 
 
 
-## Patient demographic:
+### Patient demographic:
 
 | MRN | BirthYear | Sex |
 | --- | --- | --- |
@@ -44,7 +46,7 @@ The MRN in the Patient demographic file should corrispond to the MRN in the Pati
 
 
 
-## Mother Child Linkage:
+### Mother Child Linkage:
 
 | MRN_Mother | MRN_Child |
 | --- | --- |
@@ -54,7 +56,7 @@ The Mother Child Linkage is established in the delivery room and is the most acc
 
 
 
-## Other Family Linkages:
+### Other Family Linkages:
 
 | MRN_2 | MRN_3 | Relationship |
 | --- | --- |  --- |
@@ -63,10 +65,8 @@ The Mother Child Linkage is established in the delivery room and is the most acc
 Other self reported family relations are often captured in an EHR.  These links will also be integrated into the families generated from the Emergency Contact Information.
 
 
-
-
 ---
-# Running RIFTEHR
+## Running RIFTEHR
 
 Run example files with `python run_RIFTEHR.py --run_example`
 
