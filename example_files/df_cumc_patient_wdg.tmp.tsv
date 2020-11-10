@@ -1,4 +1,7 @@
 empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_empi	DOB_matched	SEX_matched	age_dif
+11	Child	1	first	1937.0	M	1960.0	M	-23.0
+11	Child	1	phone	1937.0	M	1960.0	M	-23.0
+11	Child	1	first,last	1937.0	M	1960.0	M	-23.0
 11	Child	1	first,phone	1937.0	M	1960.0	M	-23.0
 11	Child	1	first,zip	1937.0	M	1960.0	M	-23.0
 11	Child	1	last,phone	1937.0	M	1960.0	M	-23.0
@@ -8,6 +11,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 11	Child	1	first,phone,zip	1937.0	M	1960.0	M	-23.0
 11	Child	1	last,phone,zip	1937.0	M	1960.0	M	-23.0
 11	Child	1	first,last,phone,zip	1937.0	M	1960.0	M	-23.0
+1	Spouse	2	first	1960.0	M	1961.0	F	-1.0
+1	Spouse	2	phone	1960.0	M	1961.0	F	-1.0
+1	Spouse	2	first,last	1960.0	M	1961.0	F	-1.0
 1	Spouse	2	first,phone	1960.0	M	1961.0	F	-1.0
 1	Spouse	2	first,zip	1960.0	M	1961.0	F	-1.0
 1	Spouse	2	last,phone	1960.0	M	1961.0	F	-1.0
@@ -17,6 +23,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 1	Spouse	2	first,phone,zip	1960.0	M	1961.0	F	-1.0
 1	Spouse	2	last,phone,zip	1960.0	M	1961.0	F	-1.0
 1	Spouse	2	first,last,phone,zip	1960.0	M	1961.0	F	-1.0
+5	Parent	2	first	1999.0	F	1961.0	F	38.0
+5	Parent	2	phone	1999.0	F	1961.0	F	38.0
+5	Parent	2	first,last	1999.0	F	1961.0	F	38.0
 5	Parent	2	first,phone	1999.0	F	1961.0	F	38.0
 5	Parent	2	first,zip	1999.0	F	1961.0	F	38.0
 5	Parent	2	last,phone	1999.0	F	1961.0	F	38.0
@@ -26,6 +35,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 5	Parent	2	first,phone,zip	1999.0	F	1961.0	F	38.0
 5	Parent	2	last,phone,zip	1999.0	F	1961.0	F	38.0
 5	Parent	2	first,last,phone,zip	1999.0	F	1961.0	F	38.0
+2	Child	3	first	1961.0	F	1990.0	F	-29.0
+2	Child	3	phone	1961.0	F	1990.0	F	-29.0
+2	Child	3	first,last	1961.0	F	1990.0	F	-29.0
 2	Child	3	first,phone	1961.0	F	1990.0	F	-29.0
 2	Child	3	first,zip	1961.0	F	1990.0	F	-29.0
 2	Child	3	last,phone	1961.0	F	1990.0	F	-29.0
@@ -35,6 +47,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 2	Child	3	first,phone,zip	1961.0	F	1990.0	F	-29.0
 2	Child	3	last,phone,zip	1961.0	F	1990.0	F	-29.0
 2	Child	3	first,last,phone,zip	1961.0	F	1990.0	F	-29.0
+6	Spouse	3	first	1990.0	M	1990.0	F	0.0
+6	Spouse	3	phone	1990.0	M	1990.0	F	0.0
+6	Spouse	3	first,last	1990.0	M	1990.0	F	0.0
 6	Spouse	3	first,phone	1990.0	M	1990.0	F	0.0
 6	Spouse	3	first,zip	1990.0	M	1990.0	F	0.0
 6	Spouse	3	last,phone	1990.0	M	1990.0	F	0.0
@@ -44,6 +59,10 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 6	Spouse	3	first,phone,zip	1990.0	M	1990.0	F	0.0
 6	Spouse	3	last,phone,zip	1990.0	M	1990.0	F	0.0
 6	Spouse	3	first,last,phone,zip	1990.0	M	1990.0	F	0.0
+3	Sibling	4	first	1990.0	F	1996.0	M	-6.0
+3	Sibling	4	phone	1990.0	F	1996.0	M	-6.0
+3	Sibling	4	zip	1990.0	F	1996.0	M	-6.0
+3	Sibling	4	first,last	1990.0	F	1996.0	M	-6.0
 3	Sibling	4	first,phone	1990.0	F	1996.0	M	-6.0
 3	Sibling	4	first,zip	1990.0	F	1996.0	M	-6.0
 3	Sibling	4	last,phone	1990.0	F	1996.0	M	-6.0
@@ -54,6 +73,10 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 3	Sibling	4	first,phone,zip	1990.0	F	1996.0	M	-6.0
 3	Sibling	4	last,phone,zip	1990.0	F	1996.0	M	-6.0
 3	Sibling	4	first,last,phone,zip	1990.0	F	1996.0	M	-6.0
+4	Sibling	5	first	1996.0	M	1999.0	F	-3.0
+4	Sibling	5	phone	1996.0	M	1999.0	F	-3.0
+4	Sibling	5	zip	1996.0	M	1999.0	F	-3.0
+4	Sibling	5	first,last	1996.0	M	1999.0	F	-3.0
 4	Sibling	5	first,phone	1996.0	M	1999.0	F	-3.0
 4	Sibling	5	first,zip	1996.0	M	1999.0	F	-3.0
 4	Sibling	5	last,phone	1996.0	M	1999.0	F	-3.0
@@ -64,6 +87,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 4	Sibling	5	first,phone,zip	1996.0	M	1999.0	F	-3.0
 4	Sibling	5	last,phone,zip	1996.0	M	1999.0	F	-3.0
 4	Sibling	5	first,last,phone,zip	1996.0	M	1999.0	F	-3.0
+7	Child	6	first	1958.0	F	1990.0	M	-32.0
+7	Child	6	phone	1958.0	F	1990.0	M	-32.0
+7	Child	6	first,last	1958.0	F	1990.0	M	-32.0
 7	Child	6	first,phone	1958.0	F	1990.0	M	-32.0
 7	Child	6	first,zip	1958.0	F	1990.0	M	-32.0
 7	Child	6	last,phone	1958.0	F	1990.0	M	-32.0
@@ -73,6 +99,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 7	Child	6	first,phone,zip	1958.0	F	1990.0	M	-32.0
 7	Child	6	last,phone,zip	1958.0	F	1990.0	M	-32.0
 7	Child	6	first,last,phone,zip	1958.0	F	1990.0	M	-32.0
+9	Sibling	6	first	1993.0	M	1990.0	M	3.0
+9	Sibling	6	phone	1993.0	M	1990.0	M	3.0
+9	Sibling	6	first,last	1993.0	M	1990.0	M	3.0
 9	Sibling	6	first,phone	1993.0	M	1990.0	M	3.0
 9	Sibling	6	first,zip	1993.0	M	1990.0	M	3.0
 9	Sibling	6	last,phone	1993.0	M	1990.0	M	3.0
@@ -82,6 +111,10 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 9	Sibling	6	first,phone,zip	1993.0	M	1990.0	M	3.0
 9	Sibling	6	last,phone,zip	1993.0	M	1990.0	M	3.0
 9	Sibling	6	first,last,phone,zip	1993.0	M	1990.0	M	3.0
+8	Spouse	7	first	1957.0	M	1958.0	F	-1.0
+8	Spouse	7	phone	1957.0	M	1958.0	F	-1.0
+8	Spouse	7	zip	1957.0	M	1958.0	F	-1.0
+8	Spouse	7	first,last	1957.0	M	1958.0	F	-1.0
 8	Spouse	7	first,phone	1957.0	M	1958.0	F	-1.0
 8	Spouse	7	first,zip	1957.0	M	1958.0	F	-1.0
 8	Spouse	7	last,phone	1957.0	M	1958.0	F	-1.0
@@ -92,6 +125,10 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 8	Spouse	7	first,phone,zip	1957.0	M	1958.0	F	-1.0
 8	Spouse	7	last,phone,zip	1957.0	M	1958.0	F	-1.0
 8	Spouse	7	first,last,phone,zip	1957.0	M	1958.0	F	-1.0
+10	Aunt/Uncle	7	first	1989.0	F	1958.0	F	31.0
+10	Aunt/Uncle	7	phone	1989.0	F	1958.0	F	31.0
+10	Aunt/Uncle	7	zip	1989.0	F	1958.0	F	31.0
+10	Aunt/Uncle	7	first,last	1989.0	F	1958.0	F	31.0
 10	Aunt/Uncle	7	first,phone	1989.0	F	1958.0	F	31.0
 10	Aunt/Uncle	7	first,zip	1989.0	F	1958.0	F	31.0
 10	Aunt/Uncle	7	last,phone	1989.0	F	1958.0	F	31.0
@@ -102,6 +139,9 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 10	Aunt/Uncle	7	first,phone,zip	1989.0	F	1958.0	F	31.0
 10	Aunt/Uncle	7	last,phone,zip	1989.0	F	1958.0	F	31.0
 10	Aunt/Uncle	7	first,last,phone,zip	1989.0	F	1958.0	F	31.0
+17	Grandparent	11	first	1999.0	M	1937.0	M	62.0
+17	Grandparent	11	phone	1999.0	M	1937.0	M	62.0
+17	Grandparent	11	first,last	1999.0	M	1937.0	M	62.0
 17	Grandparent	11	first,phone	1999.0	M	1937.0	M	62.0
 17	Grandparent	11	first,zip	1999.0	M	1937.0	M	62.0
 17	Grandparent	11	last,phone	1999.0	M	1937.0	M	62.0
@@ -111,6 +151,8 @@ empi_or_mrn	relationship_group	relation_empi_or_mrn	matched_path	DOB_empi	SEX_em
 17	Grandparent	11	first,phone,zip	1999.0	M	1937.0	M	62.0
 17	Grandparent	11	last,phone,zip	1999.0	M	1937.0	M	62.0
 17	Grandparent	11	first,last,phone,zip	1999.0	M	1937.0	M	62.0
+21	Parent	22	first	2008.0	F	1980.0	F	28.0
+21	Parent	22	first,last	2008.0	F	1980.0	F	28.0
 21	Parent	22	first,phone	2008.0	F	1980.0	F	28.0
 21	Parent	22	first,zip	2008.0	F	1980.0	F	28.0
 21	Parent	22	first,last,phone	2008.0	F	1980.0	F	28.0

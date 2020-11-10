@@ -15,7 +15,17 @@ __credits__ = ["Fernanda Polubriaginof", "Thomas Nate Person", "Katie LaRow, ",
                "Nicholas P. Tatonetti"]
 
 """
-This is a python3 implementation of the http://riftehr.tatonettilab.org/
+This is a first pass of a pure python 3.x implemntiaton of
+https://github.com/tatonetti-lab/riftehr originally developed by
+http://riftehr.tatonettilab.org.  Questions/Comments/Issues concerning this
+implemention should be sent to Thomas Person, any Questions/Comments about the
+RIFTEHR algorithm itself should be directed to the Tatonetti lab.
+
+
+Should you use this implementation in your research please cite:
+Polubriaginof FCG, Vanguri R, Quinnies K, et al. Disease Heritability Inferred
+from Familial Relationships Reported in Medical Records. Cell.
+2018;173(7):1692-1704.e11. doi:10.1016/j.cell.2018.04.032; PMID: 29779949
 
 """
 
@@ -846,7 +856,7 @@ def match_cleanup(df, group_opposite, high_match):
     return df.drop_duplicates()
 
 
-def find_matches(pt_df, ec_df):
+def find_matches(pt_df, ec_df, drop):
     """
     Finds uniques patients and emergency contact matches based off of first
     name, last name, phone number, zip code combinations.  Only matches on
@@ -864,8 +874,8 @@ def find_matches(pt_df, ec_df):
         full string match now
     """
 
-    # All single matches dropped in cleanup step.  Skipping all matching on a
-    # single field.
+
+    pt_df = pt_df.drop_duplicates(subset=['MRN'], keep=drop)
 
     # Unique First Name
     pt_df_sub = pt_df[pt_df.groupby(['FirstName'])['MRN'].transform('nunique') == 1]
@@ -988,13 +998,18 @@ def find_matches(pt_df, ec_df):
     df_fn_ln_ph_zip['matched_path'] = 'first,last,phone,zip'
 
     # Merge all DF to new, rename column headers, and reindex
-    # df_cumc_patient = pd.concat([df_fn, df_ln, df_ph, df_zip, df_fn_ln, df_fn_ph, df_fn_zip, df_ln_ph, df_ln_zip, df_ph_zip, df_fn_ln_ph, df_fn_ln_zip, df_fn_ph_zip,  df_ln_ph_zip, df_fn_ln_ph_zip], ignore_index=True)
-    df_cumc_patient = pd.concat([df_fn_ph, df_fn_zip, df_ln_ph, df_ln_zip, df_ph_zip, df_fn_ln_ph, df_fn_ln_zip, df_fn_ph_zip,  df_ln_ph_zip, df_fn_ln_ph_zip], ignore_index=True)
+    df_cumc_patient = pd.concat([df_fn, df_ln, df_ph, df_zip, df_fn_ln, df_fn_ph, df_fn_zip, df_ln_ph, df_ln_zip, df_ph_zip, df_fn_ln_ph, df_fn_ln_zip, df_fn_ph_zip,  df_ln_ph_zip, df_fn_ln_ph_zip], ignore_index=True)
+    #df_cumc_patient = pd.concat([df_fn_ph, df_fn_zip, df_ln_ph, df_ln_zip, df_ph_zip, df_fn_ln_ph, df_fn_ln_zip, df_fn_ph_zip,  df_ln_ph_zip, df_fn_ln_ph_zip], ignore_index=True)
     df_cumc_patient.columns = ['empi_or_mrn', 'relationship', 'relation_empi_or_mrn', 'matched_path']
 
     # remove blank and self relationships
     df_cumc_patient = df_cumc_patient[df_cumc_patient.relationship != ""]
     df_cumc_patient = df_cumc_patient.loc[~(df_cumc_patient['empi_or_mrn'] == df_cumc_patient['relation_empi_or_mrn'])]
+
+    df_cumc_patient['empi_or_mrn'] = df_cumc_patient['empi_or_mrn'].astype(str)
+    df_cumc_patient['relationship'] = df_cumc_patient['relationship'].astype(str)
+    df_cumc_patient['relation_empi_or_mrn'] = df_cumc_patient['relation_empi_or_mrn'].astype(str)
+    df_cumc_patient['matched_path'] = df_cumc_patient['matched_path'].astype(str)
 
     return df_cumc_patient.drop_duplicates()
 
@@ -1119,6 +1134,11 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     my_encoding = find_encoding(pt_file)
     pt_df = pd.read_csv(pt_file, sep='\t', dtype=str, encoding=my_encoding)
     pt_df.columns = ['MRN', 'FirstName', 'LastName', 'PhoneNumber', 'Zipcode']
+    pt_df['MRN'] = pt_df['MRN'].astype(str)
+    pt_df['FirstName'] = pt_df['FirstName'].astype(str)
+    pt_df['LastName'] = pt_df['LastName'].astype(str)
+    pt_df['PhoneNumber'] = pt_df['PhoneNumber'].astype(str)
+    pt_df['Zipcode'] = pt_df['Zipcode'].astype(str)
     pt_row_count = len(pt_df.index)
 
     # print("Raw number of records in PT_FILE:\t" + str(pt_row_count))
@@ -1127,6 +1147,13 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     my_encoding = find_encoding(ec_file)
     ec_df = pd.read_csv(ec_file, sep='\t', dtype=str, encoding=my_encoding)
     ec_df.columns = ['MRN_1', 'EC_FirstName', 'EC_LastName', 'EC_PhoneNumber', 'EC_Zipcode', 'EC_Relationship']
+    ec_df['MRN_1'] = ec_df['MRN_1'].astype(str)
+    ec_df['EC_FirstName'] = ec_df['EC_FirstName'].astype(str)
+    ec_df['EC_LastName'] = ec_df['EC_LastName'].astype(str)
+    ec_df['EC_PhoneNumber'] = ec_df['EC_PhoneNumber'].astype(str)
+    ec_df['EC_Zipcode'] = ec_df['EC_Zipcode'].astype(str)
+    ec_df['EC_Relationship'] = ec_df['EC_Relationship'].astype(str)
+
     ec_row_count = len(ec_df.index)
 
     # print("Raw number of records in EC_FILE:\t" + str(ec_row_count))
@@ -1135,9 +1162,6 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     # Drop duplicate rows
     pt_df = pt_df.drop_duplicates()
     ec_df = ec_df.drop_duplicates()
-
-    # Drop duplicate records by MRN.
-    #pt_df = pt_df.drop_duplicates(subset=['MRN'], keep=False)
 
     # print("Raw row duplicates dropped from PT_FILE:\t" + str(pt_row_count - len(pt_df.index)))
     # print("Raw row duplicates dropped from EC_FILE:\t" + str(ec_row_count - len(ec_df.index)))
@@ -1208,7 +1232,7 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     # print("Number of PT Record IDs for analysis:\t"+ str(pt_df['MRN'].nunique()))
     # print("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique()))
     outfile.write("Number of PT Record IDs for analysis:\t"+ str(pt_df['MRN'].nunique())+"\n")
-    outfile.write("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique())+"\n")
+    outfile.write("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique())+"\n\n")
 
     my_encoding = find_encoding(dg_file)
     dg_df = pd.read_csv(dg_file, sep='\t', dtype=str, encoding=my_encoding)
@@ -1238,7 +1262,7 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
 
     dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
 
-    outfile.write("Number of Demographic Records dropped form analysis for incomplete data:\t"+ str(dg_uniqe_ids - dg_df['MRN'].nunique())+"\n\n")
+    outfile.write("Number of Demographic Records dropped form analysis for incomplete data:\t"+ str(dg_uniqe_ids - dg_df['MRN'].nunique())+"\n")
 
     # print("Number of demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique()))
     outfile.write("Number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n\n")
@@ -1330,7 +1354,21 @@ def main():
     # Step 1: Load and Match PT to EC
     pt_df, ec_df, dg_df, dg_dict = normalize_load(cli_args.pt_file, cli_args.ec_file, cli_args.dg_file, rel_abbrev_group, cli_args.out_dir)
     print("Finding Matches")
-    df_cumc_patient = find_matches(pt_df, ec_df)
+
+    # Matches on unique, so deal with duplicat MRNs by dropping first, then last, then all
+    df_cumc_patient_last = find_matches(pt_df, ec_df, 'first')
+    df_cumc_patient_first = find_matches(pt_df, ec_df, 'last')
+    df_cumc_patient_false = find_matches(pt_df, ec_df, False)
+
+    df_cumc_patient = pd.concat([df_cumc_patient_last, df_cumc_patient_first, df_cumc_patient_false], ignore_index=True)
+    df_cumc_patient.reset_index(drop=True)
+
+    df_cumc_patient['empi_or_mrn'] = df_cumc_patient['empi_or_mrn'].astype(str)
+    df_cumc_patient['relationship'] = df_cumc_patient['relationship'].astype(str)
+    df_cumc_patient['relation_empi_or_mrn'] = df_cumc_patient['relation_empi_or_mrn'].astype(str)
+    df_cumc_patient['matched_path'] = df_cumc_patient['matched_path'].astype(str)
+
+    df_cumc_patient = df_cumc_patient.drop_duplicates()
     df_cumc_patient.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient.tmp.tsv', sep='\t', index=False)
 
     # Step 2: Clean Matches and Relationship Inference
