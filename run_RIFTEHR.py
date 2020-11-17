@@ -30,14 +30,174 @@ from Familial Relationships Reported in Medical Records. Cell.
 """
 
 
+def final_out(cleaned_matched_link_list, dg_dict, file_location, out_file_name):
+    """
+    Creates the final output of RIFTEHR.  Siblings with the same birth year
+    are marked as Twins and relations are converted from general to specific.
+
+    Args:
+        cleaned_matched_link_list (dict): Link List dictionary of imputed
+                                            familial links
+        dg_dict (dict): Dictionary of demographic data
+        file_location (str): Directory output files are saved to
+        out_file_name (str): Output File name to write final out too
+
+    Returns:
+        final_link_list (dict): Final Linklist dictionary
+
+    """
+
+    final_link_list = dict()
+
+    for k, v in cleaned_matched_link_list.items():
+        if k[0] in dg_dict and k[1] in dg_dict:
+            if v == "Sibling" and dg_dict[k[0]][1] == dg_dict[k[1]][1]:
+                final_link_list[k] = "Twins"
+            else:
+                final_link_list[k] = get_specific_relation(k[1], v, dg_dict)
+        else:
+            final_link_list[k] = v
+
+    outfile = open(file_location + os.sep + out_file_name, 'wt')
+
+    for match, relation in final_link_list.items():
+        outfile.write(match[0] + "\t" + relation + "\t" + match[1] + "\n")
+    outfile.close()
+
+    return final_link_list
+
+
+def more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df, cli_args):
+    """
+    Ouptputs TP data for further analsyis.
+    """
+
+    outfile_PT = open(cli_args.out_dir + os.sep + "MissingPT_ContactInfo.tsv", 'wt')
+    outfile_EC = open(cli_args.out_dir + os.sep + "MissingECInfo.tsv", 'wt')
+
+    outfile_PT_TP = open(cli_args.out_dir + os.sep + "all_tp_pt.tsv", 'wt')
+    outfile_EC_TP = open(cli_args.out_dir + os.sep + "all_tp_ec.tsv", 'wt')
+    outfile_TP = open(cli_args.out_dir + os.sep + "all_tp.tsv", 'wt')
+
+    PT_Contact = dict()
+    EC_Contact = dict()
+
+    all_no_ec_data = set()
+    all_no_pt_data = set()
+    all_no_dg_data = set()
+
+    infile = open(cli_args.pt_file, 'rt')
+
+    for line in infile:
+        line = line.lower().strip()
+        if line.strip() == "" or "mrn" in line.lower():
+            continue
+
+        fields = [x.strip() for x in line.strip().lower().split("\t")]
+
+        if fields[0] in PT_Contact:
+            PT_Contact[fields[0]].add(line.strip())
+        else:
+
+            someset = set()
+            someset.add(line.strip())
+            PT_Contact[fields[0]] = someset
+    infile.close()
+
+    infile = open(cli_args.ec_file, 'rt')
+
+    for line in infile:
+        line = line.lower().strip()
+        if line.strip() == "" or "mrn" in line.lower():
+            continue
+
+        fields = [x.strip() for x in line.strip().lower().split("\t")]
+        if fields[0] in EC_Contact:
+            EC_Contact[fields[0]].add(line.strip())
+        else:
+
+            someset = set()
+            someset.add(line.strip())
+            EC_Contact[fields[0]] = someset
+    infile.close()
+
+    mc_link = dict()
+
+    mc_link_test = dict()
+    mc_imput_link_test = dict()
+
+    infile = open(cli_args.mc_link, 'rt')
+
+    for line in infile:
+        line = line.lower().strip()
+        if line.strip() == "" or "mrn" in line.lower():
+            continue
+        fields = [x.strip() for x in line.strip().split("\t")]
+
+        if fields[0] not in dg_dict:
+            continue
+        if fields[-1] not in dg_dict:
+            continue
+
+        outfile_TP.write(line+"\n")
+
+        outline = "\n".join(PT_Contact[fields[-1]])
+        outfile_PT_TP.write(outline+"\n")
+
+        if fields[0] not in EC_Contact:
+            outfile_EC_TP.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+        else:
+            outline = "\n".join(EC_Contact[fields[0]])
+            outfile_EC_TP.write(outline+"\n")
+
+        if fields[0] not in pt_df['MRN'].values:
+            outline = "\n".join(PT_Contact[fields[0]])
+            outfile_PT.write(outline+"\n")
+
+            #outline = "\n".join(EC_Contact[fields[0]])
+            #outfile_EC.write(outline+"\n")
+
+        if fields[-1] not in pt_df['MRN'].values:
+            outline = "\n".join(PT_Contact[fields[-1]])
+            outfile_PT.write(outline+"\n")
+
+        if fields[0] not in ec_df['MRN_1'].values:
+            if fields[0] not in EC_Contact:
+                outfile_EC.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+            else:
+                outline = "\n".join(EC_Contact[fields[0]])
+                outfile_EC.write(outline+"\n")
+
+            #outline = "\n".join(PT_Contact[fields[0]])
+            #outfile_PT.write(outline+"\n")
+
+        if fields[-1] not in ec_df['MRN_1'].values:
+            if fields[-1] not in EC_Contact:
+                outfile_EC.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+            else:
+                outline = "\n".join(EC_Contact[fields[-1]])
+                outfile_EC.write(outline+"\n")
+
+            #outline = "\n".join(PT_Contact[fields[-1]])
+            #outfile_PT.write(outline+"\n")
+
+    outfile_EC.close()
+    outfile_PT.close()
+    outfile_PT_TP.close()
+    outfile_EC_TP.close()
+    outfile_TP.close()
+
+    return
+
+
 def get_family_groups(file_location, in_file_name):
     """Use graph theory packages to identify disconnected subgraphs of the
     inferred relationship. Each disconnected subgraph is called a "family."
     Each family is assigned a single identifer.
 
     Args:
-        out_dir (str): Directory output files are saved to
-        in_file_name (str): Input File name to write family assignements too
+        file_location (str): Location of temp files
+        in_file_name (str): Input File to read
 
     """
 
@@ -126,7 +286,7 @@ def fix_sex(a_str):
 
 def find_encoding(fname):
     """
-    Finds file encoding for loading
+    Finds file encoding for ile loading
 
     Args:
         fname (str): Name of file to analyze for character encoding
@@ -140,29 +300,31 @@ def find_encoding(fname):
     return charenc
 
 
-def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df):
+def stats_and_load_other_links(cli_args, cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df):
     """
     Loads additonal relationship files if and calculates sensitivity
     and the positive predictive value for the infered relatons based off of
     provided mother child linkages
 
     Args:
-        file_location (str): Output Directory of ouput files
-        of_file (str): Input file of other Familial Relations
-        mc_file (str): Input file of Mother/Child Links
-        cleaned_matched_link_list (dict): Link List dictionary of imputed familial links
+        cli_args.out_dir (str): Output Directory of ouput files
+        cli_args.of_file (str): Input file of other Familial Relations
+        cli_args.mc_file (str): Input file of Mother/Child Links
+        cleaned_matched_link_list (dict): Link List dictionary of imputed
+                                            familial links
         dg_dict (dict): Dictionary of demographic data
         rel_abbrev_group (dict): Dictionary of group abbreviaton converstions
         pt_df (df): Pandas Dataframe of the PT contact data
         ec_df (df): Pandas Dataframe of emergency contact data
 
     Returns:
-        cleaned_matched_link_list (dict): Updated link list dictionary with additonal provided data
+        cleaned_matched_link_list (dict): Updated link list dictionary with
+                                          additonal provided data
 
 
     """
 
-    outfile = open(file_location + os.sep + "QC_stats.tsv", 'at')
+    outfile = open(cli_args.out_dir + os.sep + "QC_stats.tsv", 'at')
 
     of_link = dict()
     mc_link = dict()
@@ -170,8 +332,8 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
     mc_link_test = dict()
     mc_imput_link_test = dict()
 
-    if of_file is not None:
-        infile = open(of_file, 'rt')
+    if cli_args.of_link is not None:
+        infile = open(cli_args.of_link, 'rt')
         for line in infile:
             if line.strip() == "" or "mrn" in line.lower():
                 continue
@@ -194,9 +356,9 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
 
     mc_count = 0
 
-    if mc_file is not None:
+    if cli_args.mc_link is not None:
 
-        infile = open(mc_file, 'rt')
+        infile = open(cli_args.mc_link, 'rt')
         for line in infile:
             if line.strip() == "" or "mrn" in line.lower():
                 continue
@@ -204,10 +366,16 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
 
             mc_count += 1
 
+            # add both directions
+            mc_link[tuple([fields[0], fields[-1]])] = "Child"
+            mc_link[tuple([fields[-1], fields[0]])] = "Parent"
+
             if fields[0] not in dg_dict:
                 all_no_dg_data.add(fields[0])
+                continue
             if fields[-1] not in dg_dict:
                 all_no_dg_data.add(fields[-1])
+                continue
 
             if fields[0] not in pt_df['MRN'].values:
                 all_no_pt_data.add(fields[0])
@@ -219,7 +387,7 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
             if fields[-1] not in ec_df['MRN_1'].values:
                 all_no_ec_data.add(fields[-1])
 
-            # TP for mc stats, only those with good demographic or contact information
+            # TP for mc stats, only those with good demographic or contact info
             if fields[0] in dg_dict and fields[-1] in dg_dict and fields[0] not in all_no_pt_data and fields[-1] not in all_no_pt_data:
                 mc_link_test[tuple([fields[0], fields[-1]])] = "Child"
                 if fields[0] in all_no_ec_data or fields[-1] in all_no_ec_data:
@@ -231,10 +399,6 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
                 elif tuple([fields[-1], fields[0]]) in cleaned_matched_link_list:
                     new_relation = bi_directional(cleaned_matched_link_list[tuple([fields[-1], fields[0]])])
                     mc_imput_link_test[tuple([fields[0], fields[-1]])] = new_relation
-
-            # add both directions
-            mc_link[tuple([fields[0], fields[-1]])] = "Child"
-            mc_link[tuple([fields[-1], fields[0]])] = "Parent"
 
         infile.close()
 
@@ -260,8 +424,6 @@ def stats_and_load_other_links(file_location, of_file, mc_file, cleaned_matched_
                     MC_TP_count += 1
                 else:
                     MC_FP_count += 1
-                    # print("match:\t"+str(match)+"\t"+str(mc_imput_link_test[match]) + "\t!=\t" + str(mc_link_test[match]))
-                    # print(str(mc_imput_link_test[match]) + "\t!=\t" + str(mc_link_test[match]))
             else:
                 MC_FN_count += 1
                 if match in test_missing_ec_data:
@@ -303,37 +465,40 @@ def get_specific_relation(pt_id, relation, dg_dict):
         specific_relation: Converted Specific Relation
 
     """
-    specific_relation = ""
-    if relation == "Parent":
-        if dg_dict[pt_id] == "F":
-            specific_relation = "Mother"
-        else:
-            specific_relation = "Father"
-    if relation == "Sibling":
-        if dg_dict[pt_id] == "F":
-            specific_relation = "Sister"
-        else:
-            specific_relation = "Brother"
-    elif relation == "Aunt/Uncle":
-        if dg_dict[pt_id] == "F":
-            specific_relation = "Aunt"
-        else:
-            specific_relation = "Uncle"
-    elif relation == 'Nephew/Niece':
-        if dg_dict[pt_id] == "F":
-            specific_relation = "Niece"
-        else:
-            specific_relation = "Nephew"
-    elif relation == 'Grandnephew/Grandniece':
-        if dg_dict[pt_id] == "F":
-            specific_relation = "Grandniece"
-        else:
-            specific_relation = "Grandnephew"
-    elif relation == 'Grandaunt/Granduncle':
-        if dg_dict[pt_id] == "F":
-            specific_relation = "Grandaunt"
-        else:
-            specific_relation = "Granduncle"
+
+    specific_relation = relation
+
+    if pt_id in dg_dict:
+        if relation == "Sibling":
+            if dg_dict[pt_id] == "F":
+                specific_relation = "Sister"
+            elif dg_dict[pt_id] == "M":
+                specific_relation = "Brother"
+        elif relation == "Parent":
+            if dg_dict[pt_id][0] == "F":
+                specific_relation = "Mother"
+            elif dg_dict[pt_id][0] == "M":
+                specific_relation = "Father"
+        elif relation == "Aunt/Uncle":
+            if dg_dict[pt_id][0] == "F":
+                specific_relation = "Aunt"
+            elif dg_dict[pt_id][0] == "M":
+                specific_relation = "Uncle"
+        elif relation == 'Nephew/Niece':
+            if dg_dict[pt_id][0] == "F":
+                specific_relation = "Niece"
+            elif dg_dict[pt_id][0] == "M":
+                specific_relation = "Nephew"
+        elif relation == 'Grandnephew/Grandniece':
+            if dg_dict[pt_id][0] == "F":
+                specific_relation = "Grandniece"
+            elif dg_dict[pt_id][0] == "M":
+                specific_relation = "Grandnephew"
+        elif relation == 'Grandaunt/Granduncle':
+            if dg_dict[pt_id][0] == "F":
+                specific_relation = "Grandaunt"
+            elif dg_dict[pt_id][0] == "M":
+                specific_relation = "Granduncle"
 
     return specific_relation
 
@@ -859,12 +1024,15 @@ def match_cleanup(df, group_opposite, high_match):
 def find_matches(pt_df, ec_df, drop):
     """
     Finds uniques patients and emergency contact matches based off of first
-    name, last name, phone number, zip code combinations.  Only matches on
-    atleast two fields considered.
+    name, last name, phone number, zip code combinations.
 
     Args:
         ec_df (df): Pandas Dataframe of Emergency Contact Information
-        pt_df (df): Pandas Dataframe of Patient Informationb
+        pt_df (df): Pandas Dataframe of Patient Information
+        drop (boolean/option): How to handle duplicate MRNs in PT Contact data frame.
+                        Options are First, Last, True, False.   First keeps
+                        first of duplicate MRNs, Last keeps Last, True keeps
+                        both, False drops all duplicate MRNs
 
     Returns:
         df_cumc_patient: Pandas Dataframe of Matches
@@ -874,8 +1042,11 @@ def find_matches(pt_df, ec_df, drop):
         full string match now
     """
 
-
-    pt_df = pt_df.drop_duplicates(subset=['MRN'], keep=drop)
+    if drop:
+        # True, no drop based off of unique MRN
+        pt_df = pt_df.drop_duplicates()
+    else:
+        pt_df = pt_df.drop_duplicates(subset=['MRN'], keep=drop)
 
     # Unique First Name
     pt_df_sub = pt_df[pt_df.groupby(['FirstName'])['MRN'].transform('nunique') == 1]
@@ -999,17 +1170,11 @@ def find_matches(pt_df, ec_df, drop):
 
     # Merge all DF to new, rename column headers, and reindex
     df_cumc_patient = pd.concat([df_fn, df_ln, df_ph, df_zip, df_fn_ln, df_fn_ph, df_fn_zip, df_ln_ph, df_ln_zip, df_ph_zip, df_fn_ln_ph, df_fn_ln_zip, df_fn_ph_zip,  df_ln_ph_zip, df_fn_ln_ph_zip], ignore_index=True)
-    #df_cumc_patient = pd.concat([df_fn_ph, df_fn_zip, df_ln_ph, df_ln_zip, df_ph_zip, df_fn_ln_ph, df_fn_ln_zip, df_fn_ph_zip,  df_ln_ph_zip, df_fn_ln_ph_zip], ignore_index=True)
     df_cumc_patient.columns = ['empi_or_mrn', 'relationship', 'relation_empi_or_mrn', 'matched_path']
 
     # remove blank and self relationships
     df_cumc_patient = df_cumc_patient[df_cumc_patient.relationship != ""]
     df_cumc_patient = df_cumc_patient.loc[~(df_cumc_patient['empi_or_mrn'] == df_cumc_patient['relation_empi_or_mrn'])]
-
-    df_cumc_patient['empi_or_mrn'] = df_cumc_patient['empi_or_mrn'].astype(str)
-    df_cumc_patient['relationship'] = df_cumc_patient['relationship'].astype(str)
-    df_cumc_patient['relation_empi_or_mrn'] = df_cumc_patient['relation_empi_or_mrn'].astype(str)
-    df_cumc_patient['matched_path'] = df_cumc_patient['matched_path'].astype(str)
 
     return df_cumc_patient.drop_duplicates()
 
@@ -1032,8 +1197,8 @@ def clean_split_names(a_str):
     #unicode letters and symbols to
     n_str = unidecode.unidecode(a_str.strip())
 
-    if n_str.strip().lower() == 'none':
-        n_str=None
+    if n_str.strip().lower() == 'none' or n_str.strip().lower() == 'null':
+        return None
 
     return a_str.strip().lower().replace("-", " ")  # .split(" ")  TODO
 
@@ -1053,7 +1218,7 @@ def normalize_phone_num(a_str):
     # Normalize
     c_str = a_str.strip().lower().replace("-", "").replace("(", "").replace(")", "").replace(" ", "").replace(".", "").replace("*", "").replace("#", "").replace("+", "").strip()
 
-    # remove extentions
+    # remove phone extentions
     if "," in c_str:
         c_str = c_str.split(",")[0]
 
@@ -1071,8 +1236,8 @@ def normalize_phone_num(a_str):
     if c_str.strip()=="0000000000":
         return None
 
-    # 10 minium.
-    if len(c_str) < 10:
+    # 10 digit phone number
+    if len(c_str) != 10:
         return None
 
     # Only numbers in a phone number
@@ -1097,12 +1262,12 @@ def normalize_zip_code(a_str):
     # Normalize
     c_str = a_str.strip().lower().replace("-", "").replace("(", "").replace(")", "").replace(" ", "").replace(".", "").replace("*", "").replace("#", "").strip()
 
-    # Drop 4 digit
+    # Drop 4 digit extention
     if len(c_str) >5:
         c_str=c_str[:5]
 
-    # 5 minium.
-    if len(c_str)<5:
+    # 5 digit zip code.
+    if len(c_str) != 5:
         return None
 
     # Only numbers
@@ -1156,15 +1321,12 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
 
     ec_row_count = len(ec_df.index)
 
-    # print("Raw number of records in EC_FILE:\t" + str(ec_row_count))
     outfile.write("Raw number of records in EC_FILE:\t" + str(ec_row_count)+"\n")
 
     # Drop duplicate rows
     pt_df = pt_df.drop_duplicates()
     ec_df = ec_df.drop_duplicates()
 
-    # print("Raw row duplicates dropped from PT_FILE:\t" + str(pt_row_count - len(pt_df.index)))
-    # print("Raw row duplicates dropped from EC_FILE:\t" + str(ec_row_count - len(ec_df.index)))
     outfile.write("Raw row duplicates dropped from PT_FILE:\t" + str(pt_row_count - len(pt_df.index))+"\n")
     outfile.write("Raw row duplicates dropped from EC_FILE:\t" + str(ec_row_count - len(ec_df.index))+"\n")
 
@@ -1213,24 +1375,12 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     pt_df = pt_df.drop_duplicates()
     ec_df = ec_df.drop_duplicates()
 
-    # pt_row_count = len(pt_df.index)
-    # ec_row_count = len(ec_df.index)
-
-    # print("Total rows dropped from PT_FILE for incomplete data:\t" + str(pt_row_count - len(pt_df.index)))
-    # print("Total rows dropped from EC_FILE for incomplete data:\t" + str(ec_row_count - len(ec_df.index)))
     outfile.write("Total rows dropped from PT_FILE for incomplete data:\t" + str(pt_row_count - len(pt_df.index))+"\n")
     outfile.write("Total rows dropped from EC_FILE for incomplete data:\t" + str(ec_row_count - len(ec_df.index))+"\n")
 
-    # pt_uniq_pt_count = pt_df['MRN'].nunique()
-    # ec_uniq_pt_count = ec_df['MRN_1'].nunique()
-
-    # print("Number of PT Record IDs dropped from analysis for incomplete data:\t"+ str(pt_uniq_pt_count - pt_df['MRN'].nunique()))
-    # print("Number of EC Record IDs dropped from analysis for incomplete data:\t"+ str(ec_uniq_pt_count - ec_df['MRN_1'].nunique()))
     outfile.write("Number of PT Record IDs dropped from analysis for incomplete data:\t"+ str(pt_uniq_pt_count - pt_df['MRN'].nunique())+"\n")
     outfile.write("Number of EC Record IDs dropped from analysis for incomplete data:\t"+ str(ec_uniq_pt_count - ec_df['MRN_1'].nunique())+"\n")
 
-    # print("Number of PT Record IDs for analysis:\t"+ str(pt_df['MRN'].nunique()))
-    # print("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique()))
     outfile.write("Number of PT Record IDs for analysis:\t"+ str(pt_df['MRN'].nunique())+"\n")
     outfile.write("Number of EC Record IDs for analysis:\t"+ str(ec_df['MRN_1'].nunique())+"\n\n")
 
@@ -1238,15 +1388,12 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
     dg_df = pd.read_csv(dg_file, sep='\t', dtype=str, encoding=my_encoding)
     dg_df.columns = ['MRN', 'BirthYear', 'Sex']
 
-    # print("Raw number of Demographic Record rows for analysis:\t"+ str(len(dg_df.index)))
     outfile.write("Raw number of Demographic Records rows for analysis:\t"+ str(len(dg_df.index))+"\n")
 
-    # print("Raw number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique()))
     outfile.write("Raw number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n")
 
     dg_df = dg_df.drop_duplicates()
     dg_uniqe_ids = dg_df['MRN'].nunique()
-    #outfile.write("Raw number of duplicate demographic Records dropped:\t"+ str(len(dg_df.index))+"\n")
 
     # Set Sex to the letters F or M and drop any non conforming
     dg_df['Sex'] = dg_df['Sex'].apply(fix_sex)
@@ -1255,16 +1402,10 @@ def normalize_load(pt_file, ec_file, dg_file, rel_abbrev_group, file_location):
 
     dg_df = dg_df.drop_duplicates()
 
-    #outfile.write("PT MRNs dropped for incomplete Demographic Data:\t")
-    #for v in dg_df_hasNA["MRN"]:
-    #    outfile.write(str(v)+", ")
-    #outfile.write("\n")
-
     dg_df = dg_df.drop_duplicates(subset=['MRN'], keep=False)
 
     outfile.write("Number of Demographic Records dropped form analysis for incomplete data:\t"+ str(dg_uniqe_ids - dg_df['MRN'].nunique())+"\n")
 
-    # print("Number of demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique()))
     outfile.write("Number of Demographic Record IDs for analysis:\t"+ str(dg_df['MRN'].nunique())+"\n\n")
 
     dg_dict = dict()
@@ -1359,14 +1500,10 @@ def main():
     df_cumc_patient_last = find_matches(pt_df, ec_df, 'first')
     df_cumc_patient_first = find_matches(pt_df, ec_df, 'last')
     df_cumc_patient_false = find_matches(pt_df, ec_df, False)
+    df_cumc_patient_true = find_matches(pt_df, ec_df, True)
 
-    df_cumc_patient = pd.concat([df_cumc_patient_last, df_cumc_patient_first, df_cumc_patient_false], ignore_index=True)
+    df_cumc_patient = pd.concat([df_cumc_patient_last, df_cumc_patient_first, df_cumc_patient_false, df_cumc_patient_true], ignore_index=True)
     df_cumc_patient.reset_index(drop=True)
-
-    df_cumc_patient['empi_or_mrn'] = df_cumc_patient['empi_or_mrn'].astype(str)
-    df_cumc_patient['relationship'] = df_cumc_patient['relationship'].astype(str)
-    df_cumc_patient['relation_empi_or_mrn'] = df_cumc_patient['relation_empi_or_mrn'].astype(str)
-    df_cumc_patient['matched_path'] = df_cumc_patient['matched_path'].astype(str)
 
     df_cumc_patient = df_cumc_patient.drop_duplicates()
     df_cumc_patient.to_csv(cli_args.out_dir + os.sep + 'df_cumc_patient.tmp.tsv', sep='\t', index=False)
@@ -1384,7 +1521,8 @@ def main():
 
     if cli_args.of_link is not None or cli_args.mc_link is not None:
         print("Calulating stats")
-        cleaned_matched_link_list = stats_and_load_other_links(cli_args.out_dir, cli_args.of_link, cli_args.mc_link, cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df)
+        # more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df, cli_args)
+        cleaned_matched_link_list = stats_and_load_other_links(cli_args, cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df)
 
         outfile = open(cli_args.out_dir + os.sep + "patient_relations_w_infered_w_of_mc.tmp.tsv", 'wt')
         for match, relation in cleaned_matched_link_list.items():
@@ -1397,7 +1535,10 @@ def main():
     else:
         matches_dict = infer_relations(cli_args.out_dir, "patient_relations_w_infered_w_of_mc.tmp.tsv","output_actual_and_inferred_relationships2.tmp.tsv")
 
-    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "final_patient_relations_w_infered.tsv")
+    cleaned_matched_link_list = clean_inferences(cli_args.out_dir, matches_dict, "cleaned_patient_relations_w_infered2.tmp.tsv")
+
+    print("Writing Final Out")
+    final_link_list = final_out(cleaned_matched_link_list, dg_dict, cli_args.out_dir, "final_patient_relations_w_infered.tsv")
 
     print("Writing Families")
     get_family_groups(cli_args.out_dir, "final_patient_relations_w_infered.tsv")
