@@ -69,7 +69,7 @@ def final_out(cleaned_matched_link_list, dg_dict, file_location, out_file_name):
 
 def more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df, cli_args):
     """
-    Ouptputs TP data for further analsyis.
+    Ouptputs TP data for further analsyis.  Commented out in main.
     """
 
     outfile_PT = open(cli_args.out_dir + os.sep + "MissingPT_ContactInfo.tsv", 'wt')
@@ -78,6 +78,7 @@ def more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_d
     outfile_PT_TP = open(cli_args.out_dir + os.sep + "all_tp_pt.tsv", 'wt')
     outfile_EC_TP = open(cli_args.out_dir + os.sep + "all_tp_ec.tsv", 'wt')
     outfile_TP = open(cli_args.out_dir + os.sep + "all_tp.tsv", 'wt')
+    outfile_c_TP_ec = open(cli_args.out_dir + os.sep + "all_c_tp_ec.tsv", 'wt')
 
     PT_Contact = dict()
     EC_Contact = dict()
@@ -145,17 +146,23 @@ def more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_d
         outfile_PT_TP.write(outline+"\n")
 
         if fields[0] not in EC_Contact:
-            outfile_EC_TP.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+            outfile_EC_TP.write(fields[0]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
         else:
             outline = "\n".join(EC_Contact[fields[0]])
             outfile_EC_TP.write(outline+"\n")
 
+
+        if fields[-1] not in EC_Contact:
+            outfile_EC_TP.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+            outfile_c_TP_ec.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+        else:
+            outline = "\n".join(EC_Contact[fields[-1]])
+            outfile_EC_TP.write(outline+"\n")
+            outfile_c_TP_ec.write(outline+"\n")
+
         if fields[0] not in pt_df['MRN'].values:
             outline = "\n".join(PT_Contact[fields[0]])
             outfile_PT.write(outline+"\n")
-
-            #outline = "\n".join(EC_Contact[fields[0]])
-            #outfile_EC.write(outline+"\n")
 
         if fields[-1] not in pt_df['MRN'].values:
             outline = "\n".join(PT_Contact[fields[-1]])
@@ -163,23 +170,19 @@ def more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_d
 
         if fields[0] not in ec_df['MRN_1'].values:
             if fields[0] not in EC_Contact:
-                outfile_EC.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+                outfile_EC.write(fields[0]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+
             else:
                 outline = "\n".join(EC_Contact[fields[0]])
                 outfile_EC.write(outline+"\n")
 
-            #outline = "\n".join(PT_Contact[fields[0]])
-            #outfile_PT.write(outline+"\n")
-
         if fields[-1] not in ec_df['MRN_1'].values:
             if fields[-1] not in EC_Contact:
                 outfile_EC.write(fields[-1]+"\tNoECData\tNoECData\tNoECData\tNoECData\tNoECData\n")
+
             else:
                 outline = "\n".join(EC_Contact[fields[-1]])
                 outfile_EC.write(outline+"\n")
-
-            #outline = "\n".join(PT_Contact[fields[-1]])
-            #outfile_PT.write(outline+"\n")
 
     outfile_EC.close()
     outfile_PT.close()
@@ -1521,7 +1524,7 @@ def main():
 
     if cli_args.of_link is not None or cli_args.mc_link is not None:
         print("Calulating stats")
-        # more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df, cli_args)
+        more_stats(cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df, cli_args)
         cleaned_matched_link_list = stats_and_load_other_links(cli_args, cleaned_matched_link_list, dg_dict, rel_abbrev_group, pt_df, ec_df)
 
         outfile = open(cli_args.out_dir + os.sep + "patient_relations_w_infered_w_of_mc.tmp.tsv", 'wt')
